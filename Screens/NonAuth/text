@@ -1,0 +1,256 @@
+import React, { useEffect, useState } from 'react'
+import { View, StyleSheet, StatusBar, Image, TouchableOpacity, SafeAreaView } from 'react-native'
+import { Container, Content, Text, Toast } from 'native-base'
+import CustomHeaderType from '../../Components/CustomHeaderType'
+import Fonts from '../../Constants/Fonts'
+import CustomTextInput from '../../Components/CustomTextInput'
+import CustomButton from '../../Components/CustomButton'
+import ViewItem from '../../Components/ViewItem'
+import CustomDrawerHeaderBack from '../../Components/CustomDrawerHeaderBack'
+import { StackActions } from '@react-navigation/native'
+import axios from 'axios'
+import { useSelector } from 'react-redux'
+
+const ViewTravelItineray = props => {
+
+//     const [departureDateTime, setDepartureDateTime] = useState("27 April,2021 , 11:51 PM")
+//     const [returnDate, setReturnDate] = useState("27 April,2021")
+//     const [reportingTime, setReportingTime] = useState("1:37 PM")
+//     const charter_id = props.route.params.charter_id;
+//     const driverId = useSelector(state => state.userReducer.id);
+//     const [loading, setLoading] = useState(true);
+  
+//     const fetchCharterDetail = async () => {
+//         var FormData = require('form-data');
+//         var data = new FormData();
+//         data.append('API_KEY', 'fti_coach@2021_*');
+//         data.append('driver_id', driverId);
+//         data.append('charter_id', charter_id);
+    
+//         var config = {
+//           method: 'post',
+//           url:
+//             'https://fticoachcharters.com/api/driver/get_charter_detail',
+//           data: data,
+//         };
+    
+//         try {
+//           const res = await axios(config);
+//           if (res.data.Status) {
+//             setMainData(res.data.data[0]);
+//             setLoading(false);
+//           } else {
+//             if (res.data.Message == 'deacivated') {
+//               logout();
+//             } else {
+//               setLoading(false);
+//               setMainData({});
+//             }
+//           }
+//         } catch (error) {
+//           console.log(error);
+//           setLoading(false);
+//           Toast.show('Something thing went wrong please try later');
+//         }
+//       };
+//     useEffect(()=>{
+//         fetchCharterDetail()
+//     },[])
+//     return (
+//         <SafeAreaView style={{flex: 1, backgroundColor: '#223F9A'}}>
+//         <View style={styles.screen}>
+
+//             {/* STATUS BAR  */}
+//             <StatusBar
+//                 backgroundColor="#223F9A"
+//             />
+
+//             <CustomDrawerHeaderBack
+//                 number={12}
+//                 width={15}
+//                 height={15}
+//                 title="Travel Itinerary"
+//                 action={() => props.navigation.goBack()}
+//                 // calaction={() => props.navigation.navigate("CalendarScreen")}
+//                 goHome={() => { props.navigation.dispatch(StackActions.popToTop()) }}
+//             />
+
+//             {/* MAIN BODY  */}
+//             <Container style={{ flex: 1 }}>
+//                 <Content>
+
+//                     <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 20 }}>
+//                         <View style={{ width: '15%', height: 1, backgroundColor: "#E9EFF7" }}></View>
+//                         <Text style={{ fontFamily: Fonts.Poppins_SemiBold, fontSize: 16, marginHorizontal: 10, maxWidth: "70%" }}>Trip Details</Text>
+//                         <View style={{ width: '100%', height: 1, backgroundColor: "#E9EFF7" }}></View>
+//                     </View>
+
+//                     {/* <View style={{ height: 20 }}></View> */}
+
+//                     <View style={{ padding: 20 }}>
+
+//                         <View style={{ marginTop: 10 }}>
+//                             <CustomTextInput
+//                                 color="#223F9A"
+//                                 label='Departure Date & Time'
+//                                 value={departureDateTime}
+//                                 action={(text) => setDepartureDateTime(text)}
+//                             />
+//                         </View>
+
+//                         <View style={{ marginTop: 30 }}>
+//                             <CustomTextInput
+//                                 color="#223F9A"
+//                                 label='Return Date'
+//                                 value={returnDate}
+//                                 action={(text) => setReturnDate(text)}
+//                             />
+//                         </View>
+
+//                         <View style={{ marginTop: 30 }}>
+//                             <CustomTextInput
+//                                 color="#223F9A"
+//                                 label='Reporting Time'
+//                                 value={reportingTime}
+//                                 action={(text) => setReportingTime(text)}
+//                             />
+
+//                             <View style={{ marginVertical: 30 }}>
+
+//                                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+//                                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+//                                         <Image
+//                                             style={{ width: 18, height: 18, resizeMode: 'contain' }}
+//                                             source={require("../../Assets/Images/downblue.png")}
+//                                         />
+//                                         <Text style={{ marginLeft: 10, fontSize: 14, fontFamily: Fonts.Poppins_Regular, lineHeight: 21 }}>2:00 PM ET</Text>
+//                                     </View>
+//                                     <Text style={{ fontSize: 14, fontFamily: Fonts.Poppins_Regular, lineHeight: 21 }}>Arrive(at Frank Eck)</Text>
+//                                 </View>
+
+//                                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 20 }}>
+//                                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+//                                         <Image
+//                                             style={{ width: 18, height: 18, resizeMode: 'contain' }}
+//                                             source={require("../../Assets/Images/downorange.png")}
+//                                         />
+//                                         <Text style={{ marginLeft: 10, fontSize: 14, fontFamily: Fonts.Poppins_Regular, lineHeight: 21 }}>2:00 PM ET</Text>
+//                                     </View>
+//                                     <Text style={{ fontSize: 14, fontFamily: Fonts.Poppins_Regular, lineHeight: 21 }}>Arrive(at Frank Eck)</Text>
+//                                 </View>
+
+//                                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 20 }}>
+//                                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+//                                         <Image
+//                                             style={{ width: 18, height: 18, resizeMode: 'contain' }}
+//                                             source={require("../../Assets/Images/downblue.png")}
+//                                         />
+//                                         <Text style={{ marginLeft: 10, fontSize: 14, fontFamily: Fonts.Poppins_Regular, lineHeight: 21 }}>2:00 PM ET</Text>
+//                                     </View>
+//                                     <Text style={{ fontSize: 14, fontFamily: Fonts.Poppins_Regular, lineHeight: 21 }}>Arrive(at Frank Eck)</Text>
+//                                 </View>
+
+//                                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 20 }}>
+//                                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+//                                         <Image
+//                                             style={{ width: 18, height: 18, resizeMode: 'contain' }}
+//                                             source={require("../../Assets/Images/downorange.png")}
+//                                         />
+//                                         <Text style={{ marginLeft: 10, fontSize: 14, fontFamily: Fonts.Poppins_Regular, lineHeight: 21 }}>2:00 PM ET</Text>
+//                                     </View>
+//                                     <Text style={{ fontSize: 14, fontFamily: Fonts.Poppins_Regular, lineHeight: 21 }}>Arrive(at Frank Eck)</Text>
+//                                 </View>
+
+//                             </View>
+
+//                         </View>
+//                         <View style={{ width: "100%", height: 2, backgroundColor: "#E9EFF7", marginTop: 5 }}></View>
+
+//                         <View style={{ marginTop: 30 }}>
+//                             <ViewItem
+//                                 title="Day 2"
+//                                 value="Date:"
+//                                 date="28 April, 2021"
+//                             />
+//                             <View style={{ width: "100%", height: 2, backgroundColor: "#E9EFF7", marginTop: 5 }}></View>
+
+//                         </View>
+
+//                         <View style={{ marginTop: 30 }}>
+//                             <ViewItem
+//                                 title="Day 2"
+//                                 value="Date:"
+//                                 date="28 April, 2021"
+//                             />
+//                             <View style={{ width: "100%", height: 2, backgroundColor: "#E9EFF7", marginTop: 5 }}></View>
+
+//                         </View>
+
+
+//                         <View style={{ marginTop: 30 }}>
+//                             <ViewItem
+//                                 title="Starting mileage"
+//                                 value="000"
+//                             />
+//                             <View style={{ width: "100%", height: 2, backgroundColor: "#E9EFF7", marginTop: 5 }}></View>
+
+//                         </View>
+
+//                         <View style={{ marginTop: 30 }}>
+//                             <ViewItem
+//                                 title="Time"
+//                                 value="1:55 PM"
+//                             />
+//                             <View style={{ width: "100%", height: 2, backgroundColor: "#E9EFF7", marginTop: 5 }}></View>
+
+//                         </View>
+
+//                         <View style={{ marginTop: 30 }}>
+//                             <ViewItem
+//                                 title="Bus Number"
+//                                 value="003"
+//                             />
+//                             <View style={{ width: "100%", height: 2, backgroundColor: "#E9EFF7", marginTop: 5 }}></View>
+
+//                         </View>
+
+//                         <View style={{ marginTop: 30 }}>
+//                             <ViewItem
+//                                 title="Deriver Temperature"
+//                                 value="000"
+//                             />
+//                             <View style={{ width: "100%", height: 2, backgroundColor: "#E9EFF7", marginTop: 5 }}></View>
+
+//                         </View>
+
+//                         <View style={{ marginTop: 30 }}>
+//                             <ViewItem
+//                                 title="COVID - 19 Symptoms"
+//                                 value="No"
+//                             />
+//                             <View style={{ width: "100%", height: 2, backgroundColor: "#E9EFF7", marginTop: 5 }}></View>
+
+//                         </View>
+
+//                     </View>
+//                 </Content>
+//             </Container>
+
+//         </View>
+//         </SafeAreaView>
+//     )
+// }
+
+// const styles = StyleSheet.create({
+//     screen: {
+//         flex: 1,
+//         backgroundColor: 'white'
+//     },
+//     heading: {
+//         marginTop: 20,
+//         fontSize: 18,
+//         fontFamily: Fonts.Poppins_Medium
+//     }
+// })
+
+export default ViewTravelItineray
