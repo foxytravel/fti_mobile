@@ -39,13 +39,13 @@
 	<key>NSContactsUsageDescription</key>
 	<string>for contact usage</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Location Permission</string>
+	<string>for calculating driving distances from current location</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Location Permission</string>
+	<string>for calculating driving distances from current location</string>
 	<key>NSLocationUsageDescription</key>
-	<string>GPS data is required to access location</string>
+	<string>for calculating driving distances from current location</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Location Permission</string>
+	<string>for calculating driving distances from current location</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>for voice recording</string>
 	<key>NSMotionUsageDescription</key>
