@@ -1,0 +1,96 @@
+name: iOS Build and Deploy to TestFlight
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    env:
+      NODE_VERSION: 16
+      NPM_VERSION: 8.16.4
+      RUBY_VERSION: 3.2.2
+      COCOAPODS_VERSION: 1.14.2
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Install npm
+      run: npm install -g npm@${{ env.NPM_VERSION }}
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ env.RUBY_VERSION }}
+
+    - name: Install CocoaPods
+      run: sudo gem install cocoapods -v ${{ env.COCOAPODS_VERSION }}
+
+    - name: Install dependencies
+      run: |
+        npm install
+        cd ios
+        pod install
+
+    - name: Bump iOS Build Version
+      run: |
+        cd ios
+        agvtool next-version -all
+
+    - name: Set up keychain
+      run: |
+        security create-keychain -p "actions" build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p "actions" build.keychain
+        security import <(echo $DEVELOPER_CERTIFICATE | base64 --decode) -P "$DEVELOPER_CERTIFICATE_PASSWORD" -A
+        security set-key-partition-list -S apple-tool:,apple: -s -k "actions" build.keychain
+      env:
+        DEVELOPER_CERTIFICATE: ${{ secrets.DEVELOPER_CERTIFICATE }}
+        DEVELOPER_CERTIFICATE_PASSWORD: ${{ secrets.DEVELOPER_CERTIFICATE_PASSWORD }}
+
+    - name: Create Provisioning Profile
+      run: |
+        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+        echo $PROVISIONING_PROFILE | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/$(uuidgen).mobileprovision
+      env:
+        PROVISIONING_PROFILE: ${{ secrets.PROVISIONING_PROFILE }}
+
+    - name: Build iOS app
+      run: |
+        cd ios
+        xcodebuild clean archive \
+          -workspace YourApp.xcworkspace \
+          -scheme YourApp \
+          -archivePath $PWD/build/YourApp.xcarchive \
+          CODE_SIGN_IDENTITY="iPhone Distribution" \
+          PROVISIONING_PROFILE_SPECIFIER="$PROVISIONING_PROFILE"
+
+    - name: Export .ipa
+      run: |
+        xcodebuild -exportArchive \
+          -archivePath $PWD/build/YourApp.xcarchive \
+          -exportOptionsPlist ios/exportOptions.plist \
+          -exportPath $PWD/build \
+          -allowProvisioningUpdates
+
+    - name: Upload to TestFlight
+      uses: appleboy/app-store-release-action@v1.3.1
+      with:
+        app_path: ios/build/YourApp.ipa
+        apple_id: ${{ secrets.APPLE_ID }}
+        app_specific_password: ${{ secrets.APP_SPECIFIC_PASSWORD }}
+        api_key_id: ${{ secrets.ASC_API_KEY_ID }}
+        api_key_issuer_id: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
+        api_key: ${{ secrets.ASC_API_KEY }}
+        team_id: ${{ secrets.TEAM_ID }}
+        app_identifier: ${{ secrets.APP_ID }}
