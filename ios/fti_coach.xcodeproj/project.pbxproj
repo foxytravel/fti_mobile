@@ -638,7 +638,7 @@
 				CODE_SIGN_ENTITLEMENTS = fti_coach/fti_coach.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 22;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = 97H8939ZRR;
 				ENABLE_BITCODE = NO;
 				HEADER_SEARCH_PATHS = "$(inherited)";
@@ -672,7 +672,7 @@
 				CODE_SIGN_ENTITLEMENTS = fti_coach/fti_coach.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 22;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = 97H8939ZRR;
 				HEADER_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = fti_coach/Info.plist;
