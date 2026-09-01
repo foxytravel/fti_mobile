@@ -47,20 +47,29 @@ target 'fti_coach' do
       # :ccache_enabled => true
     )
 
-    installer.pods_project.targets.each do |target|
-      target.build_configurations.each do |config|
-        # Fix: the {fmt} version vendored by RCT-Folly uses FMT_STRING / consteval
-        # in a way that Clang 17+ (Xcode 26) rejects with
-        # "call to consteval function is not a constant expression".
-        # Disabling consteval in fmt makes it fall back to a compatible path.
-        if target.name == 'fmt'
-          config.build_settings['OTHER_CPLUSPLUSFLAGS'] =
-            '$(inherited) -DFMT_USE_CONSTEVAL=0'
-        end
+    # Fix: the {fmt} version vendored by RCT-Folly uses FMT_STRING which
+    # produces consteval constructors. Clang 17 (Xcode 26) rejects these as
+    # "call to consteval function is not a constant expression" when the call
+    # site is not itself a constant expression.
+    # Replacing 'consteval' with 'constexpr' in the vendored fmt source files
+    # is the reliable fix: constexpr still enables compile-time evaluation
+    # where possible, satisfying fmt's format-string checking, but does not
+    # mandate it the way consteval does.
+    fmt_dir = "#{installer.sandbox.root}/fmt"
+    if Dir.exist?(fmt_dir)
+      Dir.glob("#{fmt_dir}/**/*.{h,cc}").each do |file|
+        content = File.read(file)
+        next unless content.include?('consteval')
+        File.write(file, content.gsub(/\bconsteval\b/, 'constexpr'))
+      end
+    end
 
-        # Silence deployment-target warnings from pods that declare iOS < 12.
-        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.4' \
-          if config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f < 13.4
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |cfg|
+        # Silence deployment-target warnings from pods that declare iOS < 13.4.
+        if cfg.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f < 13.4
+          cfg.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.4'
+        end
       end
     end
   end
