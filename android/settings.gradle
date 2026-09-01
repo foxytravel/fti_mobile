@@ -1,17 +1,6 @@
+pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
+plugins { id("com.facebook.react.settings") }
+extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
 rootProject.name = 'fti_coach'
-include ':react-native-get-location'
-project(':react-native-get-location').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-get-location/android')
-include ':react-native-file-viewer'
-project(':react-native-file-viewer').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-file-viewer/android')
-include ':rn-fetch-blob'
-project(':rn-fetch-blob').projectDir = new File(rootProject.projectDir, '../node_modules/rn-fetch-blob/android')
-include ':react-native-doc-viewer'
-project(':react-native-doc-viewer').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-doc-viewer/android')
-include ':react-native-image-picker'
-project(':react-native-image-picker').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-image-picker/android')
-include ':@react-native-community_clipboard'
-project(':@react-native-community_clipboard').projectDir = new File(rootProject.projectDir, '../node_modules/@react-native-community/clipboard/android')
-apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
 include ':app'
-include ':react-native-push-notification'
-project(':react-native-push-notification').projectDir = file('../node_modules/react-native-push-notification/android')
+includeBuild('../node_modules/@react-native/gradle-plugin')

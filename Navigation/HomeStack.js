@@ -22,7 +22,7 @@ const HomeStack = props => {
     return (
         <Stack.Navigator
             initialRouteName="DrawerStack"
-            headerMode={false}>
+            screenOptions={{headerShown: false}}>
             <Stack.Screen name="DrawerStack" component={DrawerStack} />
             <Stack.Screen name="CharterDetails" component={CharterDetails} />
             <Stack.Screen name="InitialDetails" component={InitialDetails} />

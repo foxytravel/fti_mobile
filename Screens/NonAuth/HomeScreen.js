@@ -9,7 +9,7 @@ import {
   Dimensions,
   SafeAreaView,
 } from 'react-native';
-import { Container, Content } from 'native-base';
+import { Container, Content } from '../../Components/NativeBase';
 import { useSelector, useDispatch } from 'react-redux';
 import Toast from 'react-native-simple-toast';
 import AsyncStorage from '@react-native-async-storage/async-storage';

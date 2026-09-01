@@ -1,6 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  xmlns:tools="http://schemas.android.com/tools"
-  package="com.fti_coach">
+  xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Network: REST API calls (axios) and Firebase Cloud Messaging. -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -17,12 +16,14 @@
 
     <!-- Local notification channel is created with vibrate: true (App.js). -->
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Required to post notifications on Android 13+ (react-native-push-notification). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- Driver location reporting: react-native-get-location (high accuracy) + ACCESS_COARSE_LOCATION request. -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
-    <!-- Permissions pulled in by rn-fetch-blob that this app does not need.
+    <!-- Permissions pulled in by react-native-blob-util that this app does not need.
          Downloads go to the app cache dir, so no DownloadManager / Wi-Fi state access is used. -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" tools:node="remove" />
     <uses-permission android:name="com.android.vending.CHECK_LICENSE" tools:node="remove" />
@@ -31,15 +32,18 @@
       android:name=".MainApplication"
       android:label="@string/app_name"
       android:icon="@mipmap/ic_launcher"
+      android:roundIcon="@mipmap/ic_launcher_round"
       android:allowBackup="false"
       android:usesCleartextTraffic="true"
+      android:supportsRtl="true"
       android:theme="@style/AppTheme">
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"
-        android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"
+        android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
         android:launchMode="singleTask"
-        android:windowSoftInputMode="adjustResize">
+        android:windowSoftInputMode="adjustResize"
+        android:exported="true">
         <intent-filter>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />

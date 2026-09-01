@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
-import { Card } from 'native-base';
+import { Card } from './NativeBase';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,

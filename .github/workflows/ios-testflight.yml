@@ -1,0 +1,76 @@
+name: iOS TestFlight
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never run two uploads at once: build numbers are derived from the latest
+# TestFlight build number.
+concurrency:
+  group: ios-release
+  cancel-in-progress: false
+
+jobs:
+  testflight:
+    name: Build and upload to TestFlight
+    runs-on: macos-26
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: ios/Pods
+          key: pods-${{ runner.os }}-${{ hashFiles('ios/Podfile', 'package-lock.json') }}
+          restore-keys: |
+            pods-${{ runner.os }}-
+
+      - name: Install CocoaPods dependencies
+        working-directory: ios
+        run: bundle exec pod install
+
+      # Read-only deploy key used by fastlane match to clone the private
+      # certificates repo over SSH.
+      - name: Load certificates repo deploy key
+        uses: webfactory/ssh-agent@v0.9.1
+        with:
+          ssh-private-key: ${{ secrets.CERTS_DEPLOY_KEY }}
+
+      - name: Build and upload to TestFlight
+        run: bundle exec fastlane ios beta
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcode-build-log
+          path: ~/Library/Logs/gym/*.log
+          if-no-files-found: ignore

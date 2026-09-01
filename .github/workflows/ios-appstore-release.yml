@@ -1,0 +1,94 @@
+name: iOS App Store Release
+
+# Manually triggered: bumps the marketing version, builds, uploads and submits
+# the app for App Store review. The version bump is committed back to the
+# repository and tagged (vX.Y.Z).
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version bump type (ignored when an explicit version is given)
+        type: choice
+        options: [patch, minor, major]
+        default: patch
+      version:
+        description: 'Explicit version (e.g. 1.2.0). Leave empty to use the bump type.'
+        type: string
+        required: false
+
+concurrency:
+  group: ios-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build, upload and submit for review
+    runs-on: macos-26
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history so the release commit/tag can be pushed back.
+          fetch-depth: 0
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: ios/Pods
+          key: pods-${{ runner.os }}-${{ hashFiles('ios/Podfile', 'package-lock.json') }}
+          restore-keys: |
+            pods-${{ runner.os }}-
+
+      - name: Install CocoaPods dependencies
+        working-directory: ios
+        run: bundle exec pod install
+
+      # Read-only deploy key used by fastlane match to clone the private
+      # certificates repo over SSH.
+      - name: Load certificates repo deploy key
+        uses: webfactory/ssh-agent@v0.9.1
+        with:
+          ssh-private-key: ${{ secrets.CERTS_DEPLOY_KEY }}
+
+      - name: Build, upload and submit for review
+        run: >
+          bundle exec fastlane ios release
+          bump:${{ inputs.bump }}
+          version:${{ inputs.version }}
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcode-build-log
+          path: ~/Library/Logs/gym/*.log
+          if-no-files-found: ignore

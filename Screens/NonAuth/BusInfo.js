@@ -7,7 +7,7 @@ import {
   SafeAreaView,
   ActivityIndicator,
 } from 'react-native';
-import {Container, Content, Text} from 'native-base';
+import {Container, Content, Text} from '../../Components/NativeBase';
 import axios from 'axios';
 import {useSelector, useDispatch} from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';

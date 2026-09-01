@@ -1,4 +1,4 @@
-import {Container, Content} from 'native-base';
+import {Container, Content} from '../../Components/NativeBase';
 import React from 'react';
 import {View, SafeAreaView, StatusBar} from 'react-native';
 import {

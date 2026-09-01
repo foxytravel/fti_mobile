@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, StatusBar, SafeAreaView, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Container, Content, Toast } from 'native-base';
+import { Container, Content, Toast } from '../../Components/NativeBase';
 import CustomHeaderType from '../../Components/CustomHeaderType';
 import Fonts from '../../Constants/Fonts';
 import CustomTextInput from '../../Components/CustomTextInput';

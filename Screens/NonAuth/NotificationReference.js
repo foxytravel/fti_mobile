@@ -23,7 +23,7 @@ import TodaysOrder from '../../Components/TodaysOrder';
 import CustomDrawerHeader from '../../Components/CustomDrawerHeader';
 import Fonts from '../../Constants/Fonts';
 import { useFocusEffect } from '@react-navigation/native';
-import { Container, Content } from 'native-base';
+import { Container, Content } from '../../Components/NativeBase';
 
 const windowHeight = Dimensions.get('window').height;
 

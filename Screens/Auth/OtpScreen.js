@@ -23,11 +23,9 @@ import {
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
 import DeviceInfo from 'react-native-device-info';
-import OTPTextView from '../../Components/OTPTextView';
 
 import Fonts from '../../Constants/Fonts';
 import CustomButton from '../../Components/CustomButton';
-import OTPInputView from '@twotalltotems/react-native-otp-input';
 import {API} from '../../API/API';
 
 const WindowHeight = Dimensions.get('window').height;
@@ -44,11 +42,10 @@ const OtpScreen = props => {
   const [resend, setResend] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
 
-  const [value, setValue] = useState('');
-  const ref = useBlurOnFulfill({value, cellCount: CELL_COUNT});
-  const [props1, getCellOnLayoutHandler] = useClearByFocusCell({
-    value,
-    setValue,
+  const ref = useBlurOnFulfill({value: otp, cellCount: CELL_COUNT});
+  const [codeFieldProps, getCellOnLayoutHandler] = useClearByFocusCell({
+    value: otp,
+    setValue: setOtp,
   });
 
   useEffect(() => {
@@ -173,23 +170,24 @@ const OtpScreen = props => {
             paddingHorizontal: 20,
             justifyContent: 'space-evenly',
           }}>
-          <OTPInputView
-            pinCount={6}
-            keyboardAppearance="light"
-            style={{color: '#24272B', width: '100%'}}
-            onCodeChanged={text => setOtp(text)}
-            code={otp}
-            codeInputFieldStyle={{
-              borderBottomWidth: 2,
-              borderColor: '#E9EFF7',
-              borderTopWidth: 0,
-              borderLeftWidth: 0,
-              borderRightWidth: 0,
-              color: '#24272B',
-              fontSize: hp(2),
-              fontFamily: Fonts.Poppins_Medium,
-            }}
+          <CodeField
+            ref={ref}
+            {...codeFieldProps}
+            value={otp}
+            onChangeText={setOtp}
+            cellCount={CELL_COUNT}
+            rootStyle={styles.codeFieldRoot}
             keyboardType="number-pad"
+            keyboardAppearance="light"
+            textContentType="oneTimeCode"
+            renderCell={({index, symbol, isFocused}) => (
+              <Text
+                key={index}
+                style={[styles.cell, isFocused && styles.focusCell]}
+                onLayout={getCellOnLayoutHandler(index)}>
+                {symbol || (isFocused ? <Cursor /> : null)}
+              </Text>
+            )}
           />
 
           {resend ? (
@@ -306,19 +304,21 @@ const styles = StyleSheet.create({
 
   codeFieldRoot: {
     backgroundColor: 'white',
+    width: '100%',
   },
   cell: {
     width: 40,
-    height: 40,
-    borderBottomWidth: 1,
-    borderBottomColor: 'black',
+    height: 45,
+    borderBottomWidth: 2,
+    borderBottomColor: '#E9EFF7',
     textAlign: 'center',
-    fontSize: hp(2.5),
-    color: '#404040',
-    fontFamily: Fonts.Poppins_Regular,
+    lineHeight: 40,
+    fontSize: hp(2),
+    color: '#24272B',
+    fontFamily: Fonts.Poppins_Medium,
   },
   focusCell: {
-    borderColor: 'black',
+    borderBottomColor: '#24272B',
   },
   titleContanier: {
     marginTop: hp('5%'),

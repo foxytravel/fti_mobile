@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet, TouchableOpacity, Text, Image} from 'react-native';
-import {Card, View} from 'native-base';
+import {Card, View} from './NativeBase';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
