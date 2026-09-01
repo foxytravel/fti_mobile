@@ -1,0 +1,44 @@
+name: iOS Seed Certificates
+
+# One-time (or repair) job: creates the Apple Distribution certificate and the
+# App Store provisioning profile and stores them, encrypted, in the
+# foxytravel/fti-certificates repo. Exists as a workflow because fastlane
+# match can only generate certificates on macOS.
+#
+# Requirements beyond the normal secrets:
+#   - The CERTS_DEPLOY_KEY deploy key must have "Allow write access" enabled
+#     on the fti-certificates repo (the regular build workflows only read).
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ios-release
+  cancel-in-progress: false
+
+jobs:
+  seed:
+    name: Generate signing certificate and profile
+    runs-on: macos-26
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Load certificates repo deploy key
+        uses: webfactory/ssh-agent@v0.9.1
+        with:
+          ssh-private-key: ${{ secrets.CERTS_DEPLOY_KEY }}
+
+      - name: Generate certificate and provisioning profile
+        run: bundle exec fastlane ios certs
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
