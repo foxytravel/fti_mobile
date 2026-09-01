@@ -31,9 +31,9 @@ The app identity is `com.foxytravel.fticoach`, team `97H8939ZRR`, scheme `fti_co
    ```
 
    1. In `foxytravel/fti-certificates`: *Settings → Deploy keys → Add deploy
-      key*. Paste the contents of `fti_certs_deploy_key.pub`. Leave **Allow
-      write access** unchecked — CI only ever reads (match runs in
-      `readonly` mode).
+      key*. Paste the contents of `fti_certs_deploy_key.pub` and check
+      **Allow write access** (write is needed only by the one-time seeding
+      workflow below; the build workflows only ever read).
    2. Save the contents of the private key file (`fti_certs_deploy_key`) as
       the `CERTS_DEPLOY_KEY` GitHub Actions secret (step 3).
    3. Delete both key files from your machine afterwards.
@@ -43,20 +43,17 @@ The app identity is `com.foxytravel.fticoach`, team `97H8939ZRR`, scheme `fti_co
    match clones `git@github.com:foxytravel/fti-certificates.git` over SSH.
 3. Pick a strong passphrase — match encrypts everything in the repo with it (`MATCH_PASSWORD`).
 4. Generate the distribution certificate + App Store provisioning profile by
-   running match **once from a machine of your choice** (does not need Xcode).
-   Your normal git credentials (e.g. your own SSH key with push access) are
-   used for this initial push:
+   running the **iOS Seed Certificates** workflow (Actions tab →
+   *iOS Seed Certificates* → *Run workflow*), after configuring the secrets
+   in step 3.
 
-   ```sh
-   bundle install
-   ASC_KEY_ID=... ASC_ISSUER_ID=... ASC_KEY_CONTENT="$(cat AuthKey_XXXX.p8)" \
-   MATCH_PASSWORD=... \
-   bundle exec fastlane match appstore
-   ```
-
-   This creates an `Apple Distribution` certificate and an App Store profile
-   for `com.foxytravel.fticoach` and stores them (encrypted) in the certs repo.
-   CI afterwards only ever runs match in `readonly` mode.
+   fastlane match can only generate certificates on macOS (it needs a
+   keychain), so this runs on a macOS runner instead of your machine. It
+   creates an `Apple Distribution` certificate and an App Store profile for
+   `com.foxytravel.fticoach` and stores them (encrypted) in the certs repo.
+   The build workflows afterwards only ever run match in `readonly` mode.
+   Re-run the same workflow to repair/renew (e.g. after the yearly
+   certificate expiry).
 
 > The bundle ID `com.foxytravel.fticoach` must exist in the
 > [Apple Developer portal → Identifiers](https://developer.apple.com/account/resources/identifiers/list)
