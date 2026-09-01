@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { View, TouchableOpacity, Text, Image, StyleSheet, ScrollView, Modal, Pressable } from 'react-native'
-import { request } from 'react-native-permissions'
 import Fonts from '../Constants/Fonts'
 
 const RenderImageItem = props => {
