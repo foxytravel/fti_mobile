@@ -46,5 +46,22 @@ target 'fti_coach' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        # Fix: the {fmt} version vendored by RCT-Folly uses FMT_STRING / consteval
+        # in a way that Clang 17+ (Xcode 26) rejects with
+        # "call to consteval function is not a constant expression".
+        # Disabling consteval in fmt makes it fall back to a compatible path.
+        if target.name == 'fmt'
+          config.build_settings['OTHER_CPLUSPLUSFLAGS'] =
+            '$(inherited) -DFMT_USE_CONSTEVAL=0'
+        end
+
+        # Silence deployment-target warnings from pods that declare iOS < 12.
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.4' \
+          if config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f < 13.4
+      end
+    end
   end
 end
