@@ -3,7 +3,7 @@ import {SafeAreaView, View, StatusBar, ActivityIndicator, Platform} from 'react-
 import SplashScreen from './Screens/Splash/SplashScreen';
 import {NavigationContainer} from '@react-navigation/native';
 import {Provider} from 'react-redux';
-import {Root} from 'native-base';
+import {Root, Toast} from './Components/NativeBase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import GetLocation from 'react-native-get-location';
 

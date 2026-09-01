@@ -58,7 +58,7 @@ const MainStack = () => {
 //   }
 
   return (
-    <Stack.Navigator headerMode={false}>
+    <Stack.Navigator screenOptions={{headerShown: false}}>
       {auth ? (
         <Stack.Screen name="HomeStack" component={HomeStack} />
       ) : (

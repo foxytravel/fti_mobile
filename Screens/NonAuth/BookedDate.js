@@ -1,4 +1,4 @@
-import { Container, Content } from 'native-base';
+import { Container, Content } from '../../Components/NativeBase';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,

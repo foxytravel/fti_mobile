@@ -1,0 +1,10 @@
+git_url("git@github.com:foxytravel/fti-certificates.git")
+storage_mode("git")
+
+type("appstore")
+app_identifier(["com.foxytravel.fticoach"])
+team_id("97H8939ZRR")
+
+# In CI, the certificates repo is cloned over SSH using a read-only deploy
+# key (loaded into ssh-agent by the workflows). The encryption passphrase is
+# provided via MATCH_PASSWORD.

@@ -7,7 +7,7 @@ import {
   ScrollView,
   SafeAreaView,
 } from 'react-native';
-import {Container, Content} from 'native-base';
+import {Container, Content} from '../../Components/NativeBase';
 import {useSelector} from 'react-redux';
 import {
   widthPercentageToDP as wp,

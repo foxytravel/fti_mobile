@@ -1,6 +1,6 @@
 import React from 'react'
 import { StyleSheet, TouchableOpacity, Text, Image } from 'react-native'
-import { Card, View } from 'native-base'
+import { Card, View } from './NativeBase'
 import Fonts from '../Constants/Fonts'
 import CustomButton from './CustomButton'
 

@@ -11,7 +11,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import {Container, Content} from 'native-base';
+import {Container, Content} from '../../Components/NativeBase';
 import CustomTextInput from '../../Components/CustomTextInput';
 import Fonts from '../../Constants/Fonts';
 import CustomButton from '../../Components/CustomButton';

@@ -1,7 +1,7 @@
 import React from 'react'
 import { Modal, StyleSheet, Pressable, View, TouchableOpacity, Text } from 'react-native'
-import DocumentPicker from 'react-native-document-picker';
-import ImagePicker from "react-native-customized-image-picker";
+import DocumentPicker, {types, isCancel} from 'react-native-document-picker';
+import ImagePicker from 'react-native-image-crop-picker';
 
 import Fonts from '../Constants/Fonts'
 
@@ -9,8 +9,9 @@ const CustomImagePickerModal = props => {
 
     const pickADocument = async () => {
         try {
-            const rest = await DocumentPicker.pickMultiple({
-                type: [DocumentPicker.types.pdf, DocumentPicker.types.docx, DocumentPicker.types.xls, DocumentPicker.types.xlsx],
+            const rest = await DocumentPicker.pick({
+                allowMultiSelection: true,
+                type: [types.pdf, types.docx, types.xls, types.xlsx],
             });
             for (const res of rest) {
                 console.log(
@@ -43,7 +44,7 @@ const CustomImagePickerModal = props => {
 
             }
         } catch (err) {
-            if (DocumentPicker.isCancel(err)) {
+            if (isCancel(err)) {
                 // User cancelled the picker, exit any dialogs or menus and move on
             } else {
                 throw err;
@@ -71,9 +72,10 @@ const CustomImagePickerModal = props => {
     }
 
     const openCamera = () => {
-        ImagePicker.openCamera({
-
-        }).then(image => {
+        ImagePicker.openCamera({}).then(result => {
+            // react-native-image-crop-picker returns a single image object from
+            // openCamera (the old library returned an array).
+            const image = Array.isArray(result) ? result : [result];
             let arr = []
             for (let index = 0; index < image.length; index++) {
                 const element = image[index];

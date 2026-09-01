@@ -13,13 +13,13 @@ import {
     Pressable,
     Alert,
 } from 'react-native';
-import { Container, Content, Icon } from 'native-base';
+import { Container, Content, Icon } from '../../Components/NativeBase';
 import axios from 'axios';
 import { useSelector, useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-simple-toast';
 import { GetAuth, GetUserId } from '../../Redux/UserDetails';
-import RNFetchBlob from 'rn-fetch-blob';
+import RNFetchBlob from 'react-native-blob-util';
 import FileViewer from 'react-native-file-viewer';
 import {
     widthPercentageToDP as wp,

@@ -12,7 +12,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import { Container, Content, Text } from 'native-base';
+import { Container, Content, Text } from '../../Components/NativeBase';
 import axios from 'axios';
 import Toast from 'react-native-simple-toast'
 import { useSelector } from 'react-redux'

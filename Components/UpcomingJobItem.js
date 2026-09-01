@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, Image, TouchableOpacity, Platform, Linking } from 'react-native';
-import { Card, View } from 'native-base';
+import { Card, View } from './NativeBase';
 import axios from 'axios';
 import { useSelector, useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';

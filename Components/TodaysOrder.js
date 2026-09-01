@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, TouchableOpacity, Text, Image, Linking } from 'react-native';
-import { Card, View } from 'native-base';
+import { Card, View } from './NativeBase';
 import Fonts from '../Constants/Fonts';
 import CustomButton from './CustomButton';
 import axios from 'axios';
@@ -14,7 +14,7 @@ import {
 import { Platform } from 'react-native';
 import { GetAuth, GetUserId } from '../Redux/UserDetails';
 import moment from 'moment';
-import RNAndroidLocationEnabler from 'react-native-android-location-enabler';
+import {promptForEnableLocationIfNeeded} from 'react-native-android-location-enabler';
 import { PERMISSIONS, RESULTS, request } from 'react-native-permissions';
 import Geolocation from '@react-native-community/geolocation';
 const TodaysOrder = props => {
@@ -135,7 +135,11 @@ const TodaysOrder = props => {
     Linking.openURL(url)
   }
   const leaveforofficeIos = async () => {
-    const granted = await Geolocation.requestAuthorization()
+    // @react-native-community/geolocation v3: requestAuthorization is
+    // callback-based; wrap it so we still wait for the prompt to resolve.
+    await new Promise(resolve =>
+      Geolocation.requestAuthorization(resolve, resolve),
+    );
     const per = await getLocationPermissions()
     console.log(per, 'permission')
     if (per) {
@@ -183,9 +187,8 @@ const TodaysOrder = props => {
 
   };
   const leaveforoffice = async () => {
-    RNAndroidLocationEnabler.promptForEnableLocationIfNeeded({
+    promptForEnableLocationIfNeeded({
       interval: 10000,
-      fastInterval: 5000,
     })
       .then(async (data) => {
         setLoading(true);

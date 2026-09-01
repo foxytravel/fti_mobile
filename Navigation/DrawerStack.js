@@ -120,16 +120,15 @@ const DrawerStack = props => {
   } else {
     return (
       <Drawer.Navigator
-        drawerStyle={{
-          width: wp('70%'),
+        screenOptions={{
+          headerShown: false,
+          drawerStyle: {
+            width: wp('70%'),
+          },
         }}
-        drawerContent={DrawerContent}
+        drawerContent={drawerProps => <DrawerContent {...drawerProps} />}
         initialRouteName="HomeScreen">
-        <Drawer.Screen
-          name="HomeScreen"
-          component={HomeScreen}
-          action={() => props.navigation.openDrawer()}
-        />
+        <Drawer.Screen name="HomeScreen" component={HomeScreen} />
         <Drawer.Screen name="TodaysJob" component={TodaysJob} />
         <Drawer.Screen name="UpcomingJobs" component={UpcomingJobs} />
         <Drawer.Screen name="CharterHistory" component={CharterHistory} />

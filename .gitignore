@@ -20,6 +20,7 @@ DerivedData
 *.hmap
 *.ipa
 *.xcuserstate
+ios/.xcode.env.local
 
 # Android/IntelliJ
 #
@@ -28,6 +29,8 @@ build/
 .gradle
 local.properties
 *.iml
+*.hprof
+android/app/.cxx/
 
 # node.js
 #
@@ -35,9 +38,7 @@ node_modules/
 npm-debug.log
 yarn-error.log
 
-# BUCK
-buck-out/
-\.buckd/
+# Keystores (keep the tracked debug/release stores)
 *.keystore
 !debug.keystore
 
@@ -47,13 +48,21 @@ buck-out/
 # screenshots whenever they are needed.
 # For more information about the recommended setup visit:
 # https://docs.fastlane.tools/best-practices/source-control/
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/README.md
+fastlane/*.p8
+*.mobileprovision
+*.cer
+*.p12
 
-*/fastlane/report.xml
-*/fastlane/Preview.html
-*/fastlane/screenshots
+# Ruby / CocoaPods
+vendor/bundle/
+/ios/Pods/
 
 # Bundle artifact
 *.jsbundle
 
-# CocoaPods
-/ios/Pods/
+# Testing
+coverage/
