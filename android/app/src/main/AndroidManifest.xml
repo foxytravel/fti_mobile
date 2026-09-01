@@ -1,17 +1,31 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools"
   package="com.fti_coach">
 
+    <!-- Network: REST API calls (axios) and Firebase Cloud Messaging. -->
     <uses-permission android:name="android.permission.INTERNET" />
-
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-    <uses-permission android:name="android.permission.DOWNLOAD_WITHOUT_NOTIFICATION" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Attachment capture: ImagePicker.openCamera() in Components/CustomImagePickerModal.js -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Attachment gallery picking: ImagePicker.openPicker(). Legacy-only on API 29+. -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <!-- Only meaningful up to API 28; scoped storage makes it a no-op afterwards. -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+      android:maxSdkVersion="28" />
+
+    <!-- Local notification channel is created with vibrate: true (App.js). -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- Driver location reporting: react-native-get-location (high accuracy) + ACCESS_COARSE_LOCATION request. -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+
+    <!-- Permissions pulled in by rn-fetch-blob that this app does not need.
+         Downloads go to the app cache dir, so no DownloadManager / Wi-Fi state access is used. -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" tools:node="remove" />
+    <uses-permission android:name="com.android.vending.CHECK_LICENSE" tools:node="remove" />
 
     <application
       android:name=".MainApplication"
@@ -27,7 +41,6 @@
         android:launchMode="singleTask"
         android:windowSoftInputMode="adjustResize">
         <intent-filter>
-            <action android:name="android.intent.action.DOWNLOAD_COMPLETE"/>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
@@ -41,13 +54,9 @@
 
         <receiver android:name="com.dieam.reactnativepushnotification.modules.RNPushNotificationActions" />
         <receiver android:name="com.dieam.reactnativepushnotification.modules.RNPushNotificationPublisher" />
-        <receiver android:name="com.dieam.reactnativepushnotification.modules.RNPushNotificationBootEventReceiver">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
-                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
-            </intent-filter>
-        </receiver>
+        <!-- RNPushNotificationBootEventReceiver (and RECEIVE_BOOT_COMPLETED) intentionally omitted:
+             the app only posts immediate local notifications, never localNotificationSchedule(),
+             so there is nothing to re-register after a reboot. -->
 
         <service
             android:name="com.dieam.reactnativepushnotification.modules.RNPushNotificationListenerService"

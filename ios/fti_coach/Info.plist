@@ -26,38 +26,12 @@
 	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict/>
-	<key>NSAppleMusicUsageDescription</key>
-	<string>for entertainment</string>
-	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>For app use</string>
-	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string>for bluethooth use</string>
-	<key>NSCalendarsUsageDescription</key>
-	<string>for calendar use</string>
 	<key>NSCameraUsageDescription</key>
-	<string>$(PRODUCT_NAME) For documents.</string>
-	<key>NSContactsUsageDescription</key>
-	<string>for contact usage</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Location Permission</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Location Permission</string>
-	<key>NSLocationUsageDescription</key>
-	<string>GPS data is required to access location</string>
+	<string>$(PRODUCT_NAME) uses the camera so you can photograph charter documents and attachments.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Location Permission</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>for voice recording</string>
-	<key>NSMotionUsageDescription</key>
-	<string>for motion detection</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>1</string>
+	<string>$(PRODUCT_NAME) uses your location while the app is open to report your current position for the charter you are driving.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>1</string>
-	<key>NSSiriUsageDescription</key>
-	<string>For app use</string>
-	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>for better user experience</string>
+	<string>$(PRODUCT_NAME) needs access to your photo library so you can attach existing photos to a charter and save photos you take in the app.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Poppins-Black.ttf</string>
