@@ -25,10 +25,15 @@ TARGET = "fti_coach"
 
 platform :ios do
   private_lane :asc_api_key do
+    # ASC_KEY_CONTENT is the base64-encoded .p8 file. Base64 is used so the
+    # PEM newlines survive being stored in a GitHub secret / env var — raw
+    # multiline keys are easily mangled, which surfaces as
+    # "invalid curve name (OpenSSL::PKey::ECError)".
     app_store_connect_api_key(
       key_id: ENV.fetch("ASC_KEY_ID"),
       issuer_id: ENV.fetch("ASC_ISSUER_ID"),
       key_content: ENV.fetch("ASC_KEY_CONTENT"),
+      is_key_content_base64: true,
     )
   end
 

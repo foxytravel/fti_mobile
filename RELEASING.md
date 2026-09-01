@@ -69,7 +69,7 @@ In the repo: *Settings → Secrets and variables → Actions → New repository 
 |---|---|
 | `ASC_KEY_ID` | Key ID from step 1 |
 | `ASC_ISSUER_ID` | Issuer ID from step 1 |
-| `ASC_KEY_CONTENT` | Full contents of the `.p8` file (plain text, including the BEGIN/END lines) |
+| `ASC_KEY_CONTENT` | **base64-encoded** contents of the `.p8` file: `base64 -w0 AuthKey_XXXXXX.p8` (Linux) or `base64 -i AuthKey_XXXXXX.p8` (macOS) |
 | `MATCH_PASSWORD` | The match encryption passphrase from step 2 |
 | `CERTS_DEPLOY_KEY` | Full contents of the deploy key's **private** key file from step 2 |
 
