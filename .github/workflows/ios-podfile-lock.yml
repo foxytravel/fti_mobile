@@ -31,7 +31,15 @@ jobs:
           node-version: 22
           cache: npm
 
+      - name: Cache node_modules
+        id: node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
       - name: Install npm dependencies
+        if: steps.node-modules.outputs.cache-hit != 'true'
         run: npm ci
 
       - name: Set up Ruby
@@ -39,6 +47,16 @@ jobs:
         with:
           ruby-version: '3.3'
           bundler-cache: true
+
+      # Only the pod download cache: this job exists to resolve the graph from
+      # scratch, so `ios/Pods` itself is deliberately not restored.
+      - name: Cache CocoaPods downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/CocoaPods
+          key: cocoapods-downloads-${{ runner.os }}-${{ hashFiles('ios/Podfile', 'package-lock.json') }}
+          restore-keys: |
+            cocoapods-downloads-${{ runner.os }}-
 
       - name: Regenerate Podfile.lock
         working-directory: ios
