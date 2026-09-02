@@ -81,9 +81,17 @@ runs:
     # (node_modules/react-native/scripts/cocoapods/utils.rb). USE_CCACHE is
     # what react_native_post_install reads to decide whether to do so. If the
     # wrapper is not injected, the build still succeeds but nothing is cached —
-    # so also put ccache's directory on PATH explicitly (in case `bundle exec`
-    # runs with a trimmed PATH that does not include the Homebrew bin dir) and
-    # verify below that it actually got wired into the Pods project.
+    # so also put ccache on PATH explicitly (in case `bundle exec` runs with a
+    # trimmed PATH that does not include the Homebrew bin dir) and verify below
+    # that it actually got wired into the Pods project.
+    #
+    # IMPORTANT: prepend a directory containing only a symlink to ccache, not
+    # Homebrew's whole bin dir. GITHUB_PATH entries are prepended (the last
+    # write wins the front), so adding `$(dirname ccache)` (i.e.
+    # /opt/homebrew/bin) here would push Homebrew's Ruby 3.4.0 ahead of the
+    # Ruby 3.3 that ruby/setup-ruby installed in the previous step, and every
+    # later `bundle exec pod install` / `bundle exec fastlane` would run under
+    # 3.4.0 where the installed gems don't exist ("Could not find …").
     - name: Install ccache
       shell: bash
       env:
@@ -92,7 +100,9 @@ runs:
         HOMEBREW_NO_INSTALL_CLEANUP: '1'
       run: |
         command -v ccache >/dev/null 2>&1 || brew install ccache
-        echo "$(dirname "$(command -v ccache)")" >> "$GITHUB_PATH"
+        mkdir -p "$HOME/.local/bin"
+        ln -sf "$(command -v ccache)" "$HOME/.local/bin/ccache"
+        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
         {
           echo "USE_CCACHE=1"
           echo "CCACHE_DIR=$HOME/Library/Caches/ccache"
