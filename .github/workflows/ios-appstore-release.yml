@@ -75,7 +75,7 @@ jobs:
         run: ccache --show-stats --verbose || true
 
       - name: Upload the IPA
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ipa
           path: build/fti_coach.ipa
@@ -84,7 +84,7 @@ jobs:
 
       - name: Upload build log on failure
         if: failure()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: xcode-build-log
           path: ~/Library/Logs/gym/*.log
@@ -120,7 +120,7 @@ jobs:
 
       - name: Upload the screenshots
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: screenshots
           path: fastlane/screenshots
@@ -133,7 +133,7 @@ jobs:
       # leaving a silently empty screenshots artifact.
       - name: Upload screenshot test log on failure
         if: failure()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: screenshot-test-log
           path: ~/Library/Logs/snapshot/*.log
