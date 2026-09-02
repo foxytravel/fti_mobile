@@ -99,7 +99,7 @@ Screenshot capture runs on the **same UI-test target** used by fastlane
   `SCREENSHOT_EMAIL` / `SCREENSHOT_PASSWORD`.
 - `ios/fti_coachUITests/SnapshotHelper.swift` — fastlane's screenshot helper
   (keep it in sync: `bundle exec fastlane snapshot update`).
-- `fastlane/Snapshotfile` — captures on the largest iPhone (6.9"), which is
+- `fastlane/Snapfile` — captures on the largest iPhone (6.9"), which is
   the display size App Store Connect requires. The UI tests build in
   **Release** so the JS bundle is embedded (a Debug build would wait for a
   Metro dev server that isn't running in CI).
