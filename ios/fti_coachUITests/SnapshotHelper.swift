@@ -195,13 +195,21 @@ open class Snapshot: NSObject {
 
                 let path = screenshotsDir.appendingPathComponent("\(simulator)-\(name).png")
                 #if swift(<5.0)
-                    try UIImagePNGRepresentation(image)?.write(to: path, options: .atomic)
+                    guard let pngData = UIImagePNGRepresentation(image) else {
+                        XCTFail("Could not encode screenshot as PNG: \(name)")
+                        return
+                    }
                 #else
-                    try image.pngData()?.write(to: path, options: .atomic)
+                    guard let pngData = image.pngData() else {
+                        XCTFail("Could not encode screenshot as PNG: \(name)")
+                        return
+                    }
                 #endif
+                try pngData.write(to: path, options: .atomic)
             } catch let error {
-                NSLog("Problem writing screenshot: \(name) to \(screenshotsDir)/\(simulator)-\(name).png")
-                NSLog(error.localizedDescription)
+                let message = "Problem writing screenshot \(name) to \(screenshotsDir)/\(simulator)-\(name).png: \(error.localizedDescription)"
+                NSLog("%@", message)
+                XCTFail(message)
             }
         #endif
     }

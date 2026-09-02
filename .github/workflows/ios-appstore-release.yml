@@ -131,13 +131,12 @@ jobs:
         run: ccache --show-stats --verbose || true
 
       - name: Upload the screenshots
-        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: screenshots
           path: fastlane/screenshots
           retention-days: 14
-          if-no-files-found: ignore
+          if-no-files-found: error
 
       # snapshot tees the xcodebuild output to ~/Library/Logs/snapshot/ — the
       # only place a "No device found" / failed-assertion screenshot run is

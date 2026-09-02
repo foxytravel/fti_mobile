@@ -18,6 +18,7 @@ languages(["en-US"])
 
 output_directory("fastlane/screenshots")
 clear_previous_screenshots(true)
+stop_after_first_error(true)
 
 workspace("ios/fti_coach.xcworkspace")
 scheme("fti_coach")

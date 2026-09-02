@@ -118,10 +118,10 @@ Screenshot capture runs on the **same UI-test target** used by fastlane
   the display size App Store Connect requires. The UI tests build in
   **Release** so the JS bundle is embedded (a Debug build would wait for a
   Metro dev server that isn't running in CI).
-- `scripts/add_uitest_target.rb` — one-time script that added the
-  `fti_coachUITests` target to `ios/fti_coach.xcodeproj` and wired it into the
-  shared scheme's Test action. It is idempotent; re-run it after a fresh
-  checkout if the target ever goes missing.
+- `scripts/add_uitest_target.rb` — creates or repairs the `fti_coachUITests`
+  target in `ios/fti_coach.xcodeproj` and wires it into the shared scheme's
+  Test action. In particular it preserves `PRODUCT_NAME = $(TARGET_NAME)`;
+  without that setting Xcode cannot name the UI-test runner or bundle.
 
 Run it locally on macOS:
 
@@ -145,13 +145,15 @@ installs and GitHub runners do not reliably ship every iPhone), so the name in
 > unprefixed variables makes the test fail its first assertion with empty
 > credentials, even though fastlane itself can see them.
 >
-> The same forwarding is required for `SIMULATOR_HOST_HOME` and
-> `SIMULATOR_DEVICE_NAME`: fastlane's `SnapshotHelper` uses them to locate the
-> host's screenshot cache, and if they don't reach the test runner every
-> `snapshot(...)` call silently no-ops — the job **succeeds** but the
-> `fastlane/screenshots` artifact comes back empty. The lane exports both as
-> `TEST_RUNNER_`-prefixed variables, and `SnapshotHelper` now fails loudly
-> (`XCTFail`) instead of silently returning when they are missing.
+> `SIMULATOR_HOST_HOME` and `SIMULATOR_DEVICE_NAME` are also forwarded with
+> `TEST_RUNNER_` prefixes because fastlane's `SnapshotHelper` uses them to
+> locate the host screenshot cache. The helper fails the test if those values
+> are unavailable or a PNG cannot be written.
+>
+> Screenshot generation is fail-closed: snapshot stops on a failed Xcode test,
+> the lane requires at least nine PNGs, and the publish lane checks the same
+> invariant before contacting App Store Connect. An HTML-only artifact can no
+> longer be treated as a successful screenshot run.
 
 ### 5. Replace the Firebase iOS config (required)
 

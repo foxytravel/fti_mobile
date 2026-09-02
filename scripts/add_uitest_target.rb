@@ -28,7 +28,7 @@ project = Xcodeproj::Project.open(PROJECT_PATH)
 target = project.targets.find { |t| t.name == TARGET_NAME }
 
 if target
-  puts "#{TARGET_NAME} target already exists; skipping creation."
+  puts "#{TARGET_NAME} target already exists; repairing configuration."
 else
   puts "Adding #{TARGET_NAME} target..."
 
@@ -38,29 +38,35 @@ else
   target = project.new_target(:ui_test_bundle, TARGET_NAME, :ios, DEPLOYMENT_TARGET)
   target.add_file_references(file_refs)
 
-  app_target = project.targets.find { |t| t.name == APP_TARGET_NAME }
-  abort "App target '#{APP_TARGET_NAME}' not found" unless app_target
-
-  target.build_configurations.each do |config|
-    settings = config.build_settings
-    settings['TEST_TARGET_NAME'] = APP_TARGET_NAME
-    settings['PRODUCT_BUNDLE_IDENTIFIER'] = BUNDLE_ID
-    settings['GENERATE_INFOPLIST_FILE'] = 'YES'
-    settings['CODE_SIGN_STYLE'] = 'Automatic'
-    settings['SWIFT_VERSION'] = SWIFT_VERSION
-    settings['IPHONEOS_DEPLOYMENT_TARGET'] = DEPLOYMENT_TARGET
-    settings['CURRENT_PROJECT_VERSION'] = '1'
-    settings['MARKETING_VERSION'] = '1.0'
-    settings['LD_RUNPATH_SEARCH_PATHS'] = [
-      '$(inherited)',
-      '@executable_path/Frameworks',
-      '@loader_path/Frameworks',
-    ]
-  end
-
-  project.save
-  puts "Saved #{TARGET_NAME} target."
 end
+
+app_target = project.targets.find { |t| t.name == APP_TARGET_NAME }
+abort "App target '#{APP_TARGET_NAME}' not found" unless app_target
+
+# Apply these settings for both newly-created and existing targets. In
+# particular PRODUCT_NAME is required: without it Xcode tries to build
+# "-Runner.app/PlugIns/.xctest" and reports duplicate output commands before
+# the screenshot test can run.
+target.build_configurations.each do |config|
+  settings = config.build_settings
+  settings['TEST_TARGET_NAME'] = APP_TARGET_NAME
+  settings['PRODUCT_BUNDLE_IDENTIFIER'] = BUNDLE_ID
+  settings['PRODUCT_NAME'] = '$(TARGET_NAME)'
+  settings['GENERATE_INFOPLIST_FILE'] = 'YES'
+  settings['CODE_SIGN_STYLE'] = 'Automatic'
+  settings['SWIFT_VERSION'] = SWIFT_VERSION
+  settings['IPHONEOS_DEPLOYMENT_TARGET'] = DEPLOYMENT_TARGET
+  settings['CURRENT_PROJECT_VERSION'] = '1'
+  settings['MARKETING_VERSION'] = '1.0'
+  settings['LD_RUNPATH_SEARCH_PATHS'] = [
+    '$(inherited)',
+    '@executable_path/Frameworks',
+    '@loader_path/Frameworks',
+  ]
+end
+
+project.save
+puts "Saved #{TARGET_NAME} target."
 
 # new_target auto-adds a Foundation.framework reference that hardcodes an old
 # SDK path (e.g. iPhoneOS14.0.sdk) and breaks on newer Xcode versions. UI test
