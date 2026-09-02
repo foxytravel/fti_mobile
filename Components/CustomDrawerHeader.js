@@ -10,7 +10,7 @@ import Fonts from '../Constants/Fonts';
 const CustomDrawerHeader = props => {
   return (
     <View style={styles.screen}>
-      <TouchableOpacity onPress={props.action}>
+      <TouchableOpacity testID="drawer-toggle" onPress={props.action}>
         <Image
           style={{
             width: wp('5%'),

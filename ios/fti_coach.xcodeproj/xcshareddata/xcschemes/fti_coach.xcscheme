@@ -23,7 +23,7 @@
       </BuildActionEntries>
    </BuildAction>
    <TestAction
-      buildConfiguration = "Debug"
+      buildConfiguration = "Release"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
@@ -32,9 +32,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "fti_coachTests.xctest"
-               BlueprintName = "fti_coachTests"
+               BlueprintIdentifier = "00D78467DF783A2A2AA009E2"
+               BuildableName = "fti_coachUITests.xctest"
+               BlueprintName = "fti_coachUITests"
                ReferencedContainer = "container:fti_coach.xcodeproj">
             </BuildableReference>
          </TestableReference>

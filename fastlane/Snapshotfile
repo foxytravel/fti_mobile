@@ -1,0 +1,21 @@
+# Configuration for `fastlane ios screenshots` (fastlane snapshot).
+#
+# Screenshots are captured on the largest iPhone (6.9"), which is the display
+# size App Store Connect requires. If the simulator name differs on your Xcode
+# version, override it via the SNAPSHOT_DEVICE environment variable.
+
+# The build configuration used for tests comes from the shared scheme's Test
+# action, which is set to Release so the JS bundle is embedded (Debug builds
+# expect a Metro dev server that isn't running in CI). This key is kept in
+# sync for documentation purposes.
+configuration("Release")
+
+devices([ENV["SNAPSHOT_DEVICE"] || "iPhone 17 Pro Max"])
+
+languages(["en-US"])
+
+output_directory("fastlane/screenshots")
+clear_previous_screenshots(true)
+
+workspace("ios/fti_coach.xcworkspace")
+scheme("fti_coach")
