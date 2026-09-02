@@ -73,6 +73,17 @@ target 'fti_coach' do
         if cfg.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f < 13.4
           cfg.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.4'
         end
+
+        # Xcode 26 enables explicitly-built modules by default, which is
+        # incompatible with how CocoaPods 1.15.2 builds its aggregate target and
+        # with RN's ccache compiler wrapper: the build system cannot recognise
+        # the compiler ("Explicit modules is enabled but the compiler was not
+        # recognized") and the Pods-fti_coach aggregate library is never
+        # produced, failing the link with "ld: library 'Pods-fti_coach' not
+        # found". Disable explicit modules for the pods, as the clang note
+        # itself prescribes (CLANG_ENABLE_EXPLICIT_MODULES=NO).
+        cfg.build_settings['CLANG_ENABLE_EXPLICIT_MODULES'] = 'NO'
+        cfg.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO'
       end
     end
   end
