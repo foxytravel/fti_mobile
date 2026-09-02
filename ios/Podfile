@@ -84,16 +84,26 @@ target 'fti_coach' do
         # itself prescribes (CLANG_ENABLE_EXPLICIT_MODULES=NO).
         cfg.build_settings['CLANG_ENABLE_EXPLICIT_MODULES'] = 'NO'
         cfg.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO'
-
-        # Keep ccache on CC/CXX (compile cache) but stop wrapping the linker:
-        # RN's post_install sets LD/LDPLUSPLUS to the ccache-clang wrapper,
-        # which cannot cache the link step and, driven as LD, breaks the link
-        # with "ld: library 'Pods-fti_coach' not found". Deleting the settings
-        # reverts linking to Xcode's default clang driver while compiles stay
-        # cached.
-        cfg.build_settings.delete('LD')
-        cfg.build_settings.delete('LDPLUSPLUS')
       end
+    end
+
+    # Keep ccache on CC/CXX (compile cache) but stop wrapping the linker.
+    # react_native_post_install (with USE_CCACHE=1) points LD / LDPLUSPLUS at
+    # the ccache wrapper at the PROJECT level — on both the app project and the
+    # Pods project (set_ccache_compiler_and_linker_build_settings iterates
+    # project.build_configurations, not target build configs). Driven as the
+    # linker, ccache cannot cache the link step and breaks it with
+    # "ld: library 'Pods-fti_coach' not found". Remove those settings so linking
+    # falls back to Xcode's default clang driver while compiles stay cached.
+    [
+      installer.pods_project,
+      *installer.aggregate_targets.map(&:user_project).uniq,
+    ].each do |project|
+      project.build_configurations.each do |config|
+        config.build_settings.delete('LD')
+        config.build_settings.delete('LDPLUSPLUS')
+      end
+      project.save
     end
   end
 end
