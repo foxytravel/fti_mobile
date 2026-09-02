@@ -115,7 +115,10 @@ SCREENSHOT_EMAIL=... SCREENSHOT_PASSWORD=... bundle exec fastlane ios screenshot
 ```
 
 The PNGs land in `fastlane/screenshots/en-US/`. If your Xcode's simulator is
-not called `iPhone 17 Pro Max`, set `SNAPSHOT_DEVICE` to the right name.
+not called `iPhone 17 Pro Max`, set `SNAPSHOT_DEVICE` to the right name. The
+lane creates the simulator automatically if it is missing (fresh Xcode
+installs and GitHub runners do not reliably ship every iPhone), so the name in
+`SNAPSHOT_DEVICE` must match a device type Xcode knows about.
 
 > **Credentials and the test runner.** The UI test runs inside the simulator,
 > in a different process tree to fastlane, and `xcodebuild` does not forward
