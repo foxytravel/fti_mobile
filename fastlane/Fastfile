@@ -17,6 +17,8 @@
 # The certificates repo is cloned over SSH; in CI a read-only deploy key is
 # loaded into ssh-agent by the workflows before fastlane runs.
 
+require "fileutils"
+
 default_platform(:ios)
 
 APP_IDENTIFIER = "com.foxytravel.fticoach"
@@ -93,6 +95,46 @@ platform :ios do
     )
   end
 
+  # Sets the marketing version, either explicitly or by bumping, and returns
+  # the resulting version string.
+  private_lane :apply_version_bump do |options|
+    if options[:version] && !options[:version].to_s.empty?
+      increment_version_number_in_xcodeproj(
+        xcodeproj: XCODEPROJ,
+        version_number: options[:version],
+        target: TARGET,
+      )
+    else
+      increment_version_number_in_xcodeproj(
+        xcodeproj: XCODEPROJ,
+        bump_type: options[:bump] || "patch",
+        target: TARGET,
+      )
+    end
+
+    get_version_number_from_xcodeproj(
+      xcodeproj: XCODEPROJ,
+      target: TARGET,
+    )
+  end
+
+  # Commits the version bump and tags it. Only the marketing version should be
+  # in this commit — when run from CI's publish job the checkout is clean, so
+  # the signing settings and build number that the build job wrote to its own
+  # working copy are never committed.
+  private_lane :tag_release do |options|
+    version = options[:version]
+
+    if is_ci
+      sh("git", "config", "user.name", "github-actions[bot]")
+      sh("git", "config", "user.email", "github-actions[bot]@users.noreply.github.com")
+    end
+    sh("git", "add", "../#{XCODEPROJ}/project.pbxproj")
+    sh("git", "commit", "-m", "chore: release v#{version} [skip ci]")
+    add_git_tag(tag: "v#{version}")
+    push_to_git_remote(tags: true)
+  end
+
   desc "Create (or repair) the App Store distribution certificate and"
   desc "provisioning profile in the match repo. Must run on macOS — use the"
   desc "'iOS Seed Certificates' workflow; the deploy key needs write access."
@@ -125,54 +167,72 @@ platform :ios do
   desc "Capture App Store screenshots by driving the app through XCUITest"
   desc "Requires SCREENSHOT_EMAIL and SCREENSHOT_PASSWORD (demo driver account)."
   lane :screenshots do
-    UI.user_error!("SCREENSHOT_EMAIL must be set (demo driver account)") if ENV["SCREENSHOT_EMAIL"].to_s.empty?
-    UI.user_error!("SCREENSHOT_PASSWORD must be set (demo driver account)") if ENV["SCREENSHOT_PASSWORD"].to_s.empty?
+    email = ENV["SCREENSHOT_EMAIL"].to_s
+    password = ENV["SCREENSHOT_PASSWORD"].to_s
+    UI.user_error!("SCREENSHOT_EMAIL must be set (demo driver account)") if email.empty?
+    UI.user_error!("SCREENSHOT_PASSWORD must be set (demo driver account)") if password.empty?
+
+    # The test runs inside the simulator, in a different process tree to
+    # fastlane, and xcodebuild does not forward arbitrary host environment
+    # variables into it. Since Xcode 13 it forwards exactly those prefixed with
+    # TEST_RUNNER_, stripping the prefix on the way in — so the test still
+    # reads SCREENSHOT_EMAIL / SCREENSHOT_PASSWORD. Without this the
+    # credentials are simply empty inside the test and it fails its first
+    # assertion.
+    ENV["TEST_RUNNER_SCREENSHOT_EMAIL"] = email
+    ENV["TEST_RUNNER_SCREENSHOT_PASSWORD"] = password
 
     snapshot
   end
 
-  desc "Bump the marketing version, build, upload and submit for App Store review"
+  desc "Bump the marketing version and build the App Store IPA"
   desc "Options: bump:patch|minor|major (default patch) or version:x.y.z"
-  desc "Options: submit_for_review:true|false (default true)"
-  lane :release do |options|
+  desc "Writes the resolved version to build/version.txt so a later publish"
+  desc "step can pick it up without re-deriving it."
+  lane :build_release do |options|
     api_key = asc_api_key
-    submit_for_review = options[:submit_for_review].to_s != "false"
 
-    # 1. Bump the marketing version (unless an explicit version is given).
-    if options[:version] && !options[:version].empty?
-      increment_version_number_in_xcodeproj(
-        xcodeproj: XCODEPROJ,
-        version_number: options[:version],
-        target: TARGET,
-      )
-    else
-      increment_version_number_in_xcodeproj(
-        xcodeproj: XCODEPROJ,
-        bump_type: options[:bump] || "patch",
-        target: TARGET,
-      )
-    end
-    new_version = get_version_number_from_xcodeproj(
-      xcodeproj: XCODEPROJ,
-      target: TARGET,
-    )
-
-    # 2. Build and upload.
+    new_version = apply_version_bump(options)
     prepare_signing(api_key: api_key)
     bump_build_number(api_key: api_key)
     build_release_ipa
 
-    # 3. Capture the App Store screenshots (signs in with the demo driver
-    #    account and drives the app through its key screens).
-    screenshots
+    # Anchored on the Fastfile's own location so it lands in <repo>/build
+    # regardless of where fastlane was invoked from.
+    version_file = File.expand_path("../build/version.txt", __dir__)
+    FileUtils.mkdir_p(File.dirname(version_file))
+    File.write(version_file, new_version)
 
-    # 4. Upload the build, attach it to a new App Store version, upload the
-    #    screenshots and submit it for review. Metadata (description,
-    #    keywords, ...) is managed directly in App Store Connect.
+    UI.success("Built version #{new_version}")
+    new_version
+  end
+
+  desc "Upload an already-built IPA and screenshots, submit for review and tag"
+  desc "Options: version:x.y.z (required), submit_for_review:true|false,"
+  desc "ipa:path (defaults to build/fti_coach.ipa)"
+  lane :publish do |options|
+    api_key = asc_api_key
+    version = options[:version].to_s
+    UI.user_error!("publish requires version:x.y.z") if version.empty?
+    submit_for_review = options[:submit_for_review].to_s != "false"
+
+    # Re-apply the version here rather than carrying the modified project
+    # across from the build: on a clean checkout this makes the release commit
+    # contain only the version bump.
+    increment_version_number_in_xcodeproj(
+      xcodeproj: XCODEPROJ,
+      version_number: version,
+      target: TARGET,
+    )
+
+    # Attach the build to a new App Store version, upload the screenshots and
+    # submit for review. Metadata (description, keywords, ...) is managed
+    # directly in App Store Connect.
     upload_to_app_store(
       api_key: api_key,
       app_identifier: APP_IDENTIFIER,
-      app_version: new_version,
+      app_version: version,
+      ipa: options[:ipa] || "build/fti_coach.ipa",
       skip_metadata: true,
       screenshots_path: "fastlane/screenshots",
       overwrite_screenshots: true,
@@ -186,14 +246,22 @@ platform :ios do
       },
     )
 
-    # 5. Commit the version bump back to the repository and tag it.
-    if is_ci
-      sh("git", "config", "user.name", "github-actions[bot]")
-      sh("git", "config", "user.email", "github-actions[bot]@users.noreply.github.com")
-    end
-    sh("git", "add", "../#{XCODEPROJ}/project.pbxproj")
-    sh("git", "commit", "-m", "chore: release v#{new_version} [skip ci]")
-    add_git_tag(tag: "v#{new_version}")
-    push_to_git_remote(tags: true)
+    tag_release(version: version)
+  end
+
+  desc "Bump the marketing version, build, upload and submit for App Store review"
+  desc "Options: bump:patch|minor|major (default patch) or version:x.y.z"
+  desc "Options: submit_for_review:true|false (default true)"
+  desc ""
+  desc "Runs the whole pipeline sequentially. CI splits this into the"
+  desc "build_release / screenshots / publish lanes so the two builds (device"
+  desc "archive and simulator screenshot run) happen on parallel machines."
+  lane :release do |options|
+    new_version = build_release(options)
+    screenshots
+    publish(
+      version: new_version,
+      submit_for_review: options[:submit_for_review],
+    )
   end
 end

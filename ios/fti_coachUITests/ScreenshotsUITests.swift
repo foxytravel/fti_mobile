@@ -12,13 +12,29 @@ final class ScreenshotsUITests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
-        app.launch()
+        // setupSnapshot must run *before* launch: it works by appending launch
+        // arguments (locale, and the flag that puts the app in snapshot mode),
+        // which have no effect on an already-running process.
         setupSnapshot(app)
+        app.launch()
         dismissSystemAlertsIfPresent()
     }
 
     override func tearDownWithError() throws {
         app = nil
+    }
+
+    /// Reads a value injected by CI.
+    ///
+    /// `xcodebuild` does not forward the host's environment into the test
+    /// runner; variables have to be prefixed with `TEST_RUNNER_`, which it
+    /// strips on the way in. The unprefixed name is therefore what normally
+    /// arrives here, but the prefixed one is accepted as a fallback so a
+    /// misconfigured runner degrades to a clear assertion rather than a
+    /// confusing empty-credentials failure.
+    private static func injectedValue(_ name: String) -> String {
+        let environment = ProcessInfo.processInfo.environment
+        return environment[name] ?? environment["TEST_RUNNER_\(name)"] ?? ""
     }
 
     /// Element matched by its accessibility identifier (testID).
@@ -69,11 +85,16 @@ final class ScreenshotsUITests: XCTestCase {
     }
 
     func testCaptureScreenshots() {
-        let email = ProcessInfo.processInfo.environment["SCREENSHOT_EMAIL"] ?? ""
-        let password = ProcessInfo.processInfo.environment["SCREENSHOT_PASSWORD"] ?? ""
+        let email = Self.injectedValue("SCREENSHOT_EMAIL")
+        let password = Self.injectedValue("SCREENSHOT_PASSWORD")
         XCTAssertFalse(
             email.isEmpty || password.isEmpty,
-            "SCREENSHOT_EMAIL and SCREENSHOT_PASSWORD must be set"
+            """
+            SCREENSHOT_EMAIL and SCREENSHOT_PASSWORD are empty inside the test \
+            runner. fastlane must export them as TEST_RUNNER_SCREENSHOT_EMAIL \
+            and TEST_RUNNER_SCREENSHOT_PASSWORD before invoking xcodebuild; \
+            see the screenshots lane in fastlane/Fastfile.
+            """
         )
 
         // 1. Welcome screen
