@@ -21,31 +21,31 @@ const DrawerProfile = props => {
         justifyContent: 'center',
         alignItems: 'center',
       }}>
-      <TouchableOpacity onPress={props.action}>
+      <TouchableOpacity testID="drawer-profile" onPress={props.action}>
         {user?.data?.driver_image ? (
           <Image
             style={{width: hp('15%'), height: hp('15%'), borderRadius: hp("100%"),}}
             source={{uri: `${API}/${user?.data?.driver_image}`}}
           />
         ) : null}
+        <Text
+          style={{
+            fontFamily: Fonts.Poppins_Regular,
+            fontSize: hp(2),
+            color: '#FFFFFF',
+          }}>
+          {user.data.name ? user.data.name : 'N/A'}
+        </Text>
+        <Text
+          style={{
+            fontSize: hp(1.5),
+            fontFamily: Fonts.Poppins_Light,
+            lineHeight: 18,
+            color: '#FFFFFF',
+          }}>
+          {user.data.email ? user.data.email : 'N/A'}
+        </Text>
       </TouchableOpacity>
-      <Text
-        style={{
-          fontFamily: Fonts.Poppins_Regular,
-          fontSize: hp(2),
-          color: '#FFFFFF',
-        }}>
-        {user.data.name ? user.data.name : 'N/A'}
-      </Text>
-      <Text
-        style={{
-          fontSize: hp(1.5),
-          fontFamily: Fonts.Poppins_Light,
-          lineHeight: 18,
-          color: '#FFFFFF',
-        }}>
-        {user.data.email ? user.data.email : 'N/A'}
-      </Text>
     </View>
   );
 };

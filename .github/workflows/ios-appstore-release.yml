@@ -1,8 +1,8 @@
 name: iOS App Store Release
 
-# Manually triggered: bumps the marketing version, builds, uploads and submits
-# the app for App Store review. The version bump is committed back to the
-# repository and tagged (vX.Y.Z).
+# Manually triggered: bumps the marketing version, builds, uploads, captures
+# the App Store screenshots and submits the app for review. The version bump
+# is committed back to the repository and tagged (vX.Y.Z).
 on:
   workflow_dispatch:
     inputs:
@@ -15,6 +15,10 @@ on:
         description: 'Explicit version (e.g. 1.2.0). Leave empty to use the bump type.'
         type: string
         required: false
+      submit_for_review:
+        description: 'Submit for App Store review after uploading. Set to false to do a dry run (build + screenshots uploaded, no submission).'
+        type: boolean
+        default: true
 
 concurrency:
   group: ios-release
@@ -25,9 +29,9 @@ permissions:
 
 jobs:
   release:
-    name: Build, upload and submit for review
+    name: Build, capture screenshots, upload and submit for review
     runs-on: macos-26
-    timeout-minutes: 90
+    timeout-minutes: 120
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -74,16 +78,27 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.CERTS_DEPLOY_KEY }}
 
-      - name: Build, upload and submit for review
+      - name: Build, capture screenshots, upload and submit for review
         run: >
           bundle exec fastlane ios release
           bump:${{ inputs.bump }}
           version:${{ inputs.version }}
+          submit_for_review:${{ inputs.submit_for_review }}
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          SCREENSHOT_EMAIL: ${{ secrets.SCREENSHOT_EMAIL }}
+          SCREENSHOT_PASSWORD: ${{ secrets.SCREENSHOT_PASSWORD }}
+
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: fastlane/screenshots
+          if-no-files-found: ignore
 
       - name: Upload build log on failure
         if: failure()

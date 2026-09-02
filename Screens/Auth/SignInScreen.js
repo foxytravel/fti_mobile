@@ -145,6 +145,7 @@ const SignInScreen = props => {
             justifyContent: 'space-evenly',
           }}>
           <CustomTextInput
+            testID="login-email"
             autoCapitalize="none"
             label="Email"
             value={email}
@@ -156,6 +157,7 @@ const SignInScreen = props => {
             }}
           />
           <CustomTextInput
+            testID="login-password"
             label="Password"
             value={password}
             isPassword
@@ -200,6 +202,7 @@ const SignInScreen = props => {
           <CustomButton
             loading={loading}
             title="LOG IN"
+            testID="login-button"
             action={() => {
               verifypass();
             }}

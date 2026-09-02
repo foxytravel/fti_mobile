@@ -57,6 +57,7 @@ const WelcomeScreen = props => {
             props.navigation.navigate('SignInScreen');
           }}
           title="LOGIN YOUR ACCOUNT"
+          testID="welcome-login-button"
           width="80%"
         />
       </View>

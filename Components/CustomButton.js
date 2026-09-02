@@ -12,6 +12,8 @@ const CustomButton = props => {
     <TouchableOpacity
       disabled={props.loading}
       onPress={props.action}
+      accessibilityLabel={props.title}
+      testID={props.testID}
       style={{
         height: hp('8%'),
         width: props.width ? props.width : '100%',

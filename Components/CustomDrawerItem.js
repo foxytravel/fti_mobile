@@ -44,7 +44,10 @@ const CustomDrawerItem = props => {
   };
 
   return (
-    <TouchableOpacity onPress={props.action} style={styles.screen}>
+    <TouchableOpacity
+      onPress={props.action}
+      testID={`drawer-item-${props.title}`}
+      style={styles.screen}>
       <Image
         style={{ height: hp('2.5%'), width: hp('5%'), resizeMode: 'contain' }}
         source={props.image}
