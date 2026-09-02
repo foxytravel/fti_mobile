@@ -58,8 +58,11 @@ target 'fti_coach' do
     fmt_dir = "#{installer.sandbox.root}/fmt"
     if Dir.exist?(fmt_dir)
       Dir.glob("#{fmt_dir}/**/*.{h,cc}").each do |file|
+        next if File.directory?(file)
         content = File.read(file)
         next unless content.include?('consteval')
+        # The pod source is extracted read-only, so make it writable first.
+        File.chmod(0o644, file)
         File.write(file, content.gsub(/\bconsteval\b/, 'constexpr'))
       end
     end
