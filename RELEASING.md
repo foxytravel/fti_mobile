@@ -7,6 +7,13 @@ CI/CD is handled by GitHub Actions + fastlane:
 | `iOS TestFlight` | push to `main`, or manual | Auto-bumps the build number (latest TestFlight build + 1), builds with Xcode 26, uploads to TestFlight |
 | `iOS App Store Release` | manual (`workflow_dispatch`) | Bumps the marketing version (patch/minor/major or explicit), **captures the App Store screenshots** (signs in with a demo driver account and drives the app via XCUITest), builds, uploads, **submits for App Store review** (or dry-runs with `submit_for_review=false`), commits the version bump back and tags `vX.Y.Z` |
 
+The release workflow runs as three jobs: `build` (device archive) and
+`screenshots` (simulator run) execute **in parallel** because they are
+independent full compiles of the same dependency graph, then `publish` joins
+them, uploads both to App Store Connect and tags the release. The matching
+fastlane lanes are `build_release`, `screenshots` and `publish`; the `release`
+lane still runs all three in sequence for local use.
+
 The app identity is `com.foxytravel.fticoach`, team `97H8939ZRR`, scheme `fti_coach`.
 
 ---
@@ -109,6 +116,16 @@ SCREENSHOT_EMAIL=... SCREENSHOT_PASSWORD=... bundle exec fastlane ios screenshot
 
 The PNGs land in `fastlane/screenshots/en-US/`. If your Xcode's simulator is
 not called `iPhone 17 Pro Max`, set `SNAPSHOT_DEVICE` to the right name.
+
+> **Credentials and the test runner.** The UI test runs inside the simulator,
+> in a different process tree to fastlane, and `xcodebuild` does not forward
+> the host environment into it. Since Xcode 13 it forwards only variables
+> prefixed with `TEST_RUNNER_`, stripping the prefix on the way in. The
+> `screenshots` lane therefore re-exports `SCREENSHOT_EMAIL` /
+> `SCREENSHOT_PASSWORD` as `TEST_RUNNER_SCREENSHOT_EMAIL` /
+> `TEST_RUNNER_SCREENSHOT_PASSWORD` before calling `snapshot`. Setting only the
+> unprefixed variables makes the test fail its first assertion with empty
+> credentials, even though fastlane itself can see them.
 
 ### 5. Replace the Firebase iOS config (required)
 
