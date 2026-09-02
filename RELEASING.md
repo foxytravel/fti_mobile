@@ -178,7 +178,21 @@ switch for it:
 
 - **Xcode 26 requirement**: since April 28 2026, App Store Connect rejects
   binaries built with older SDKs. The workflows pin `macos-26` runners with
-  `latest-stable` Xcode.
+  Xcode `^26` (the newest 26.x on the image). It is deliberately *not*
+  `latest-stable`: a compiler change invalidates the whole compiler cache, so
+  a jump to Xcode 27 should be a deliberate commit rather than a surprise.
+- **CI build caching**: the build workflows cache three things — `node_modules`
+  (keyed on `package-lock.json`), the CocoaPods sandbox plus the generated
+  `.xcworkspace` (keyed on `ios/Podfile.lock`), and a `ccache` compiler cache
+  shared between the TestFlight and release workflows. `npm ci` and
+  `pod install` are skipped entirely on an exact cache hit. ccache is enabled
+  via `USE_CCACHE=1`, which React Native reads during `pod install` to point
+  the Pods targets' compiler at ccache — so **ccache must be installed before
+  `pod install` runs**, and changing that step order silently disables it.
+  Check the *Report ccache statistics* step to confirm the hit rate; a run
+  that recompiles everything from scratch takes ~20 min versus well under 10
+  with a warm cache. If a cache ever goes bad, bump the `pods-v2-` key prefix
+  or delete the entries from the Actions → Caches page.
 - **Legacy RN architecture**: the app runs RN 0.81 with `newArchEnabled=false`
   / `RCT_NEW_ARCH_ENABLED=0` because several native modules
   (react-native-push-notification, react-native-blob-util, ...) predate the
