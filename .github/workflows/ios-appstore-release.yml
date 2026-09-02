@@ -8,6 +8,16 @@ name: iOS App Store Release
 # drives the screenshots are independent full compiles of the same dependency
 # graph; running them on separate machines halves the wall clock at the cost of
 # a second runner. `publish` joins them back together.
+#
+# Both build and screenshots run `setup-ios-build`, which caches the CocoaPods
+# sandbox under the same `pods-v3-` key. On a warm cache both jobs hit and
+# nothing is saved. Only after a Podfile/Podfile.lock/package-lock.json change
+# do both jobs miss, run `pod install`, and race to save the same key — one
+# wins and the other logs "Unable to reserve cache ... another job may be
+# creating this cache". That is expected and harmless: the content is
+# identical, so whichever job saves first is authoritative. ccache itself is
+# deliberately namespaced per job (ccache-ios-device vs ccache-ios-simulator)
+# because device and simulator object files differ.
 on:
   workflow_dispatch:
     inputs:

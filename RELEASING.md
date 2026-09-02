@@ -203,16 +203,22 @@ switch for it:
   a jump to Xcode 27 should be a deliberate commit rather than a surprise.
 - **CI build caching**: the build workflows cache three things — `node_modules`
   (keyed on `package-lock.json`), the CocoaPods sandbox plus the generated
-  `.xcworkspace` (keyed on `ios/Podfile.lock`), and a `ccache` compiler cache
+  `.xcworkspace` (keyed on `ios/Podfile`, `ios/Podfile.lock` and
+  `package-lock.json`), and a `ccache` compiler cache
   shared between the TestFlight and release workflows. `npm ci` and
   `pod install` are skipped entirely on an exact cache hit. ccache is enabled
   via `USE_CCACHE=1`, which React Native reads during `pod install` to point
   the Pods targets' compiler at ccache — so **ccache must be installed before
   `pod install` runs**, and changing that step order silently disables it.
+  `setup-ios-build` now verifies the compiler wrapper landed in the generated
+  Pods project and fails the job if it did not.
   Check the *Report ccache statistics* step to confirm the hit rate; a run
   that recompiles everything from scratch takes ~20 min versus well under 10
-  with a warm cache. If a cache ever goes bad, bump the `pods-v2-` key prefix
-  or delete the entries from the Actions → Caches page.
+  with a warm cache. If a cache ever goes bad, bump the `pods-v3-` key prefix
+  or delete the entries from the Actions → Caches page. In the release
+  workflow the parallel `build`/`screenshots` jobs share the CocoaPods cache
+  key, so on a cold cache one of them logs "Unable to reserve cache" — that
+  is expected and harmless (the content is identical).
 - **Legacy RN architecture**: the app runs RN 0.81 with `newArchEnabled=false`
   / `RCT_NEW_ARCH_ENABLED=0` because several native modules
   (react-native-push-notification, react-native-blob-util, ...) predate the

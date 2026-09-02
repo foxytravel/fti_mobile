@@ -61,7 +61,11 @@ runs:
     # ccache compiler wrappers into the generated Pods project if
     # `command -v ccache` succeeds while that project is being generated
     # (node_modules/react-native/scripts/cocoapods/utils.rb). USE_CCACHE is
-    # what react_native_post_install reads to decide whether to do so.
+    # what react_native_post_install reads to decide whether to do so. If the
+    # wrapper is not injected, the build still succeeds but nothing is cached —
+    # so also put ccache's directory on PATH explicitly (in case `bundle exec`
+    # runs with a trimmed PATH that does not include the Homebrew bin dir) and
+    # verify below that it actually got wired into the Pods project.
     - name: Install ccache
       shell: bash
       env:
@@ -69,7 +73,8 @@ runs:
         HOMEBREW_NO_AUTO_UPDATE: '1'
         HOMEBREW_NO_INSTALL_CLEANUP: '1'
       run: |
-        command -v ccache || brew install ccache
+        command -v ccache >/dev/null 2>&1 || brew install ccache
+        echo "$(dirname "$(command -v ccache)")" >> "$GITHUB_PATH"
         {
           echo "USE_CCACHE=1"
           echo "CCACHE_DIR=$HOME/Library/Caches/ccache"
@@ -109,16 +114,24 @@ runs:
 
     # A restored Pods project hardcodes the absolute path to the ccache binary
     # that existed when it was generated. If a runner image ever moves it, the
-    # compile would fail with "command not found"; regenerate instead.
+    # compile would fail with "command not found"; regenerate instead. Also
+    # regenerate if the cached project has no ccache wrapper at all — a project
+    # generated before ccache was on PATH silently disables the compiler cache
+    # and would otherwise be reused forever.
     - name: Check cached Pods project is still usable
       id: pods-check
       if: steps.pods.outputs.cache-hit == 'true'
       shell: bash
       run: |
+        pbx=ios/Pods/Pods.xcodeproj/project.pbxproj
         binary=$(sed -n 's/.*CCACHE_BINARY = "\{0,1\}\([^";]*\)"\{0,1\};.*/\1/p' \
-          ios/Pods/Pods.xcodeproj/project.pbxproj | head -1)
+          "$pbx" | head -1)
         if [ -n "$binary" ] && [ ! -x "$binary" ]; then
           echo "ccache moved from $binary; regenerating the Pods project"
+          echo "stale=true" >> "$GITHUB_OUTPUT"
+        fi
+        if ! grep -q 'ccache-clang.sh' "$pbx"; then
+          echo "cached Pods project has no ccache wired in; regenerating the Pods project"
           echo "stale=true" >> "$GITHUB_OUTPUT"
         fi
 
@@ -127,3 +140,16 @@ runs:
       shell: bash
       working-directory: ios
       run: bundle exec pod install
+
+    # ccache silently dropping out is expensive (every compile from scratch)
+    # and easy to miss — it only shows up as an empty cache dir and slow runs.
+    # Fail the job instead so a missing injection is visible immediately.
+    - name: Verify ccache is wired into the Pods project
+      shell: bash
+      run: |
+        if grep -q 'ccache-clang.sh' ios/Pods/Pods.xcodeproj/project.pbxproj; then
+          echo "ccache compiler wrapper is wired into the Pods project"
+        else
+          echo "::error::ccache was not injected into the Pods project; compiles will not be cached. Check that 'command -v ccache' succeeds during 'pod install'."
+          exit 1
+        fi
