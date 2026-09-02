@@ -92,6 +92,13 @@ runs:
     # Ruby 3.3 that ruby/setup-ruby installed in the previous step, and every
     # later `bundle exec pod install` / `bundle exec fastlane` would run under
     # 3.4.0 where the installed gems don't exist ("Could not find …").
+    #
+    # Xcode 26 CompileC does not export user-defined build settings as env
+    # vars, so RN's wrappers see an empty CCACHE_BINARY and `exec` plain clang
+    # (facebook/react-native#55381). The cache dir is then never created and
+    # `actions/cache` logs "Path Validation Error". Rewrite the wrappers to
+    # call the binary resolved here, and mkdir the cache dir so a save is
+    # still valid even on a compile that produces no objects.
     - name: Install ccache
       shell: bash
       env:
@@ -100,14 +107,37 @@ runs:
         HOMEBREW_NO_INSTALL_CLEANUP: '1'
       run: |
         command -v ccache >/dev/null 2>&1 || brew install ccache
-        mkdir -p "$HOME/.local/bin"
-        ln -sf "$(command -v ccache)" "$HOME/.local/bin/ccache"
+        real_ccache="$(command -v ccache)"
+        cache_dir="$HOME/Library/Caches/ccache"
+        mkdir -p "$HOME/.local/bin" "$cache_dir"
+        ln -sf "$real_ccache" "$HOME/.local/bin/ccache"
         echo "$HOME/.local/bin" >> "$GITHUB_PATH"
         {
           echo "USE_CCACHE=1"
-          echo "CCACHE_DIR=$HOME/Library/Caches/ccache"
+          echo "CCACHE_DIR=$cache_dir"
           echo "CCACHE_MAXSIZE=${{ inputs.ccache-max-size }}"
         } >> "$GITHUB_ENV"
+
+        python3 <<PY
+        from pathlib import Path
+        cache_dir = "$cache_dir"
+        real = "$real_ccache"
+        maxsize = "${{ inputs.ccache-max-size }}"
+        base = Path("node_modules/react-native/scripts/xcode")
+        for name, compiler in [("ccache-clang.sh", "clang"), ("ccache-clang++.sh", "clang++")]:
+            path = base / name
+            if not path.is_file():
+                raise SystemExit(f"missing RN ccache wrapper {path}")
+            path.write_text(
+                "#!/bin/sh\n"
+                "SCRIPT_DIR=\"\$(CDPATH= cd -- \"\$(dirname \"\$0\")\" && pwd)\"\n"
+                "export CCACHE_CONFIGPATH=\"\${CCACHE_CONFIGPATH:-\$SCRIPT_DIR/ccache.conf}\"\n"
+                f"export CCACHE_DIR=\"{cache_dir}\"\n"
+                f"export CCACHE_MAXSIZE=\"{maxsize}\"\n"
+                f"exec \"{real}\" {compiler} \"\$@\"\n"
+            )
+            path.chmod(0o755)
+        PY
 
     # The key rotates per commit so the cache is re-saved every run (a fixed
     # key would only ever be written once); restore-keys pulls the newest

@@ -225,7 +225,10 @@ switch for it:
   the Pods targets' compiler at ccache — so **ccache must be installed before
   `pod install` runs**, and changing that step order silently disables it.
   `setup-ios-build` now verifies the compiler wrapper landed in the generated
-  Pods project and fails the job if it did not.
+  Pods project and fails the job if it did not. It also rewrites RN's
+  `ccache-clang.sh` wrappers: Xcode 26 CompileC does not export the
+  `CCACHE_BINARY` build setting, so the stock scripts `exec` plain clang and
+  never create the cache directory.
   Check the *Report ccache statistics* step to confirm the hit rate; a run
   that recompiles everything from scratch takes ~20 min versus well under 10
   with a warm cache. If a cache ever goes bad, bump the `pods-v3-` key prefix
