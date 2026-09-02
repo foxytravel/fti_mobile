@@ -35,6 +35,8 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>$(PRODUCT_NAME) uses the camera so you can photograph charter documents and attachments.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>$(PRODUCT_NAME) uses your location while the app is open to report your current position for the charter you are driving.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>$(PRODUCT_NAME) uses your location while the app is open to report your current position for the charter you are driving.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
