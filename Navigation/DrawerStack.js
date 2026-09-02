@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react';
+import { API_KEY } from '../Config';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import HomeScreen from '../Screens/NonAuth/HomeScreen';
 import DrawerContent from '../Screens/NonAuth/DrawerContent';
@@ -51,7 +52,7 @@ const DrawerStack = props => {
   const fetchDriverProfile = async () => {
     setLoading(true);
     var data = new FormData();
-    data.append('API_KEY', 'REDACTED_API_KEY');
+    data.append('API_KEY', API_KEY);
     data.append('driver_id', id);
 
     var config = {
@@ -80,7 +81,7 @@ const DrawerStack = props => {
     console.log('Fetch Job');
     var FormData = require('form-data');
     var data = new FormData();
-    data.append('API_KEY', 'REDACTED_API_KEY');
+    data.append('API_KEY', API_KEY);
     data.append('driver_id', id);
     data.append('date', '2021-05-18');
 

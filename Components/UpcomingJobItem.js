@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_KEY } from '../Config';
 import { StyleSheet, Text, Image, TouchableOpacity, Platform, Linking } from 'react-native';
 import { Card, View } from './NativeBase';
 import axios from 'axios';
@@ -42,7 +43,7 @@ const UpcomingJobItem = props => {
   }
   const acknowledge = async (id, charterid) => {
     var data = new FormData();
-    data.append('API_KEY', 'REDACTED_API_KEY');
+    data.append('API_KEY', API_KEY);
     data.append('driver_id', id);
     data.append('charter_id', charterid);
 

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { API_KEY } from '../../Config';
 import {
   View,
   StyleSheet,
@@ -60,7 +61,7 @@ const NotificationReference = props => {
 
     var FormData = require('form-data');
     var data = new FormData();
-    data.append('API_KEY', 'REDACTED_API_KEY');
+    data.append('API_KEY', API_KEY);
     data.append('driver_id', driverId);
     data.append('charter_id', id);
     var config = {

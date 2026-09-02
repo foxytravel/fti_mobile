@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { API_KEY } from '../Config';
 import { View, Image, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -21,7 +22,7 @@ const CustomDrawerItem = props => {
     var FormData = require('form-data');
     var data = new FormData();
     data.append('driver_id', driverId);
-    data.append('API_KEY', 'REDACTED_API_KEY');
+    data.append('API_KEY', API_KEY);
 
     var config = {
       method: 'post',

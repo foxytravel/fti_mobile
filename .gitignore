@@ -41,6 +41,15 @@ yarn-error.log
 # Keystores (keep the tracked debug/release stores)
 *.keystore
 !debug.keystore
+*.jks
+
+# Local configuration (contains the backend API key; see Config.example.js)
+/Config.js
+
+# Build artifacts / stray files that must not be committed
+*.apk
+Assets/Images/New folder/
+Screens/NonAuth/text
 
 # fastlane
 #

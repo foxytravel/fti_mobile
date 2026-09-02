@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { API_KEY } from '../../Config';
 import {
   View,
   StyleSheet,
@@ -57,7 +58,7 @@ const NotificationScreen = props => {
   const markNotificationRead = async (id, type, charterId) => {
     var FormData = require('form-data');
     var data = new FormData();
-    data.append('API_KEY', 'REDACTED_API_KEY');
+    data.append('API_KEY', API_KEY);
     data.append('driver_id', driverId);
     data.append('notification_id', id);
 
@@ -104,7 +105,7 @@ const NotificationScreen = props => {
     setNotifications([])
     var FormData = require('form-data');
     var data = new FormData();
-    data.append('API_KEY', 'REDACTED_API_KEY');
+    data.append('API_KEY', API_KEY);
     data.append('driver_id', driverId);
 
     var config = {

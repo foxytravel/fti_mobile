@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import { API_KEY } from '../../Config';
 import {
   View,
   Text,
@@ -50,7 +51,7 @@ const ChangePassword = props => {
   const changeUserPassword = async () => {
     setLoading(true);
     var data = new FormData();
-    data.append('API_KEY', 'REDACTED_API_KEY');
+    data.append('API_KEY', API_KEY);
     data.append('driver_id', id);
     data.append('old_password', oldPassword);
     data.append('new_password', password);

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { API_KEY } from '../../Config';
 import {
   View,
   StatusBar,
@@ -79,7 +80,7 @@ const CalendarScreen = props => {
     setLoading(true);
 
     var data = new FormData();
-    data.append('API_KEY', 'REDACTED_API_KEY');
+    data.append('API_KEY', API_KEY);
     data.append('driver_id', id);
     data.append('month', month);
     data.append('year', year);

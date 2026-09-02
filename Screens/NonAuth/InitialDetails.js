@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { API_KEY } from '../../Config';
 import {
   View,
   StyleSheet,
@@ -56,7 +57,7 @@ const InitialDetails = props => {
 
 
     var data = new FormData();
-    data.append('API_KEY', 'REDACTED_API_KEY');
+    data.append('API_KEY', API_KEY);
     data.append('driver_id', driverId);
     data.append('charter_id', id);
 
@@ -94,7 +95,7 @@ const InitialDetails = props => {
     setLoading(true);
 
     var data = new FormData();
-    data.append('API_KEY', 'REDACTED_API_KEY');
+    data.append('API_KEY', API_KEY);
     data.append('driver_id', driverId);
     data.append('coach_number', busNumber);
     data.append('charter_id', id);
@@ -139,7 +140,7 @@ const InitialDetails = props => {
     setLoading(true);
 
     var data = new FormData();
-    data.append('API_KEY', 'REDACTED_API_KEY');
+    data.append('API_KEY', API_KEY);
     data.append('driver_id', driverId);
     data.append('charter_id', id);
     data.append('starting_mileage', startingMileage);

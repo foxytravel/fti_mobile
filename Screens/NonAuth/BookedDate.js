@@ -1,4 +1,5 @@
 import { Container, Content } from '../../Components/NativeBase';
+import { API_KEY } from '../../Config';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
@@ -56,7 +57,7 @@ const BookedDate = props => {
     setLoading(true);
 
     var data = new FormData();
-    data.append('API_KEY', 'REDACTED_API_KEY');
+    data.append('API_KEY', API_KEY);
     data.append('driver_id', id);
     data.append('date', date);
 

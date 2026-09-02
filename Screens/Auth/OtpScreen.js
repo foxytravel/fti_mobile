@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react';
+import { API_KEY } from '../../Config';
 import {
   View,
   Text,
@@ -69,7 +70,7 @@ const OtpScreen = props => {
       return Toast.show('Otp cannot be empty');
     }
     var data = new FormData();
-    data.append('API_KEY', 'REDACTED_API_KEY');
+    data.append('API_KEY', API_KEY);
     data.append('driver_id', id);
     data.append('otp', otp);
 
@@ -100,7 +101,7 @@ const OtpScreen = props => {
   const resendOtp = async () => {
     setResendLoading(true);
     var data = new FormData();
-    data.append('API_KEY', 'REDACTED_API_KEY');
+    data.append('API_KEY', API_KEY);
     data.append('email_id', email);
     data.append('driver_id', id);
 

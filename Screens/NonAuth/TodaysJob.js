@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { API_KEY } from '../../Config';
 import {
   View,
   StyleSheet,
@@ -57,7 +58,7 @@ const TodaysJob = props => {
   const fetchjobs = async () => {
     var FormData = require('form-data');
     var data = new FormData();
-    data.append('API_KEY', 'REDACTED_API_KEY');
+    data.append('API_KEY', API_KEY);
     data.append('driver_id', driverId);
     data.append('current_date', moment(new Date()).format('YYYY-MM-DD'));
     var config = {

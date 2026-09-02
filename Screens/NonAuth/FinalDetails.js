@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { API_KEY } from '../../Config';
 import { View, Text, StyleSheet, StatusBar, SafeAreaView, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Container, Content, Toast } from '../../Components/NativeBase';
 import CustomHeaderType from '../../Components/CustomHeaderType';
@@ -75,7 +76,7 @@ const FinalDetails = props => {
     setLoading(true);
 
     var data = new FormData();
-    data.append('API_KEY', 'REDACTED_API_KEY');
+    data.append('API_KEY', API_KEY);
     data.append('driver_id', driverId);
     data.append('coach_number', busNumber);
     data.append('charter_id', id);
@@ -121,7 +122,7 @@ const FinalDetails = props => {
     setLoading(true);
 
     var data = new FormData();
-    data.append('API_KEY', 'REDACTED_API_KEY');
+    data.append('API_KEY', API_KEY);
     data.append('driver_id', driverId);
     data.append('charter_id', id);
     data.append('end_mileage', endingMileage);

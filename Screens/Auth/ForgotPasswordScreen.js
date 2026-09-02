@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import { API_KEY } from '../../Config';
 import {
   View,
   Text,
@@ -28,7 +29,7 @@ const ForgotPasswordScreen = props => {
   const forgotPassword = async () => {
     setLoading(true);
     var data = new FormData();
-    data.append('API_KEY', 'REDACTED_API_KEY');
+    data.append('API_KEY', API_KEY);
     data.append('email_id', email);
 
     var config = {
