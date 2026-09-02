@@ -68,6 +68,9 @@ fastlane/*.p8
 
 # Ruby / CocoaPods
 vendor/bundle/
+# Local-only Bundler config (BUNDLE_PATH etc.); must not be committed because
+# it conflicts with ruby/setup-ruby's bundler-cache on CI runners.
+.bundle/config
 /ios/Pods/
 
 # Bundle artifact

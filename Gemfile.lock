@@ -177,6 +177,8 @@ GEM
     fastlane-plugin-versioning (0.7.1)
     fastlane-sirp (1.1.0)
     ffi (1.17.4)
+    ffi (1.17.4-arm64-darwin)
+    ffi (1.17.4-x86_64-linux-gnu)
     fourflusher (2.3.1)
     fuzzy_match (2.0.4)
     gh_inspector (1.1.3)
@@ -326,7 +328,9 @@ GEM
       xcpretty (~> 0.2, >= 0.0.7)
 
 PLATFORMS
+  arm64-darwin
   ruby
+  x86_64-linux
 
 DEPENDENCIES
   activesupport (>= 6.1.7.5, != 7.1.0)
@@ -395,6 +399,8 @@ CHECKSUMS
   fastlane-plugin-versioning (0.7.1) sha256=7279958eb66f0cbb4a7884d69c8318e3347a414a821569f7b6ff3156e0b1d9db
   fastlane-sirp (1.1.0) sha256=10bc94f9682efd8e1badfb31452a76dd8981f1f3a33717c765fde6d75b54d847
   ffi (1.17.4) sha256=bcd1642e06f0d16fc9e09ac6d49c3a7298b9789bcb58127302f934e437d60acf
+  ffi (1.17.4-arm64-darwin) sha256=19071aaf1419251b0a46852abf960e77330a3b334d13a4ab51d58b31a937001b
+  ffi (1.17.4-x86_64-linux-gnu) sha256=9d3db14c2eae074b382fa9c083fe95aec6e0a1451da249eab096c34002bc752d
   fourflusher (2.3.1) sha256=1b3de61c7c791b6a4e64f31e3719eb25203d151746bb519a0292bff1065ccaa9
   fuzzy_match (2.0.4) sha256=b5de4f95816589c5b5c3ad13770c0af539b75131c158135b3f3bbba75d0cfca5
   gh_inspector (1.1.3) sha256=04cca7171b87164e053aa43147971d3b7f500fcb58177698886b48a9fc4a1939
