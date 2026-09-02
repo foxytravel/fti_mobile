@@ -3,10 +3,18 @@ name: Update Podfile.lock
 on:
   workflow_dispatch:
   push:
+    branches: [main]
     paths:
       - 'ios/Podfile'
       - 'package.json'
       - 'package-lock.json'
+
+concurrency:
+  group: ios-podfile-lock
+  cancel-in-progress: false
+
+permissions:
+  contents: write
 
 jobs:
   update-podfile-lock:
@@ -16,8 +24,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          node-version: 22
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
