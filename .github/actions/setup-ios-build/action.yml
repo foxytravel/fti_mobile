@@ -19,6 +19,12 @@ inputs:
     description: Upper bound on the ccache directory.
     required: false
     default: 2G
+  backend-api-key:
+    description: >
+      Backend API key for fticoachcharters.com. Written to the gitignored
+      Config.js before building; the app imports API_KEY from it. Provide as a
+      GitHub Actions secret — never commit the value.
+    required: true
 
 runs:
   using: composite
@@ -50,6 +56,18 @@ runs:
       if: steps.node-modules.outputs.cache-hit != 'true'
       shell: bash
       run: npm ci
+
+    # The app imports API_KEY from the gitignored Config.js (repo root), which
+    # Metro needs at bundle time. Generate it from the repository secret here so
+    # the key never lives in version control. The value is passed via env (never
+    # interpolated into the shell) and JSON.stringify safely quotes/escapes it,
+    # so special characters in the key cannot break the file or the build.
+    - name: Generate Config.js from backend API key
+      shell: bash
+      env:
+        BACKEND_API_KEY: ${{ inputs.backend-api-key }}
+      run: |
+        node -e 'const fs = require("fs"); const k = process.env.BACKEND_API_KEY; if (!k) { console.error("::error::BACKEND_API_KEY is empty; set the BACKEND_API_KEY repository secret"); process.exit(1); } fs.writeFileSync("Config.js", `export const API_KEY = ${JSON.stringify(k)};\n`);'
 
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1

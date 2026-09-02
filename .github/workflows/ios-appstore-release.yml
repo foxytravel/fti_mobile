@@ -59,6 +59,7 @@ jobs:
           # Device (iphoneos) objects — shared with the TestFlight workflow,
           # which compiles exactly the same configuration.
           ccache-key-prefix: ccache-ios-device
+          backend-api-key: ${{ secrets.BACKEND_API_KEY }}
 
       # Read-only deploy key used by fastlane match to clone the private
       # certificates repo over SSH.
@@ -115,6 +116,7 @@ jobs:
           # they need their own cache namespace: two jobs in the same run
           # cannot write the same cache key.
           ccache-key-prefix: ccache-ios-simulator
+          backend-api-key: ${{ secrets.BACKEND_API_KEY }}
 
       # No signing and no match: this is a simulator build, so it needs neither
       # the certificates repo nor an App Store Connect key.

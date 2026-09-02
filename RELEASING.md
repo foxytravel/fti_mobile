@@ -81,6 +81,20 @@ In the repo: *Settings → Secrets and variables → Actions → New repository 
 | `CERTS_DEPLOY_KEY` | Full contents of the deploy key's **private** key file from step 2 |
 | `SCREENSHOT_EMAIL` | **Demo driver account** email used to sign in while capturing screenshots |
 | `SCREENSHOT_PASSWORD` | Password for the demo driver account |
+| `BACKEND_API_KEY` | The backend API key for `fticoachcharters.com`. CI writes it to the gitignored `Config.js` at build time (see *Config.js* below) |
+
+> **`Config.js`**: the app imports `API_KEY` from a gitignored `Config.js` at
+> the repo root. CI generates it from the `BACKEND_API_KEY` secret in
+> `setup-ios-build` — nothing is committed. For local builds, copy the template
+> and fill in the key:
+>
+> ```sh
+> cp Config.example.js Config.js
+> # then edit Config.js with the real backend API key
+> ```
+>
+> If you rotate the backend key, update the `BACKEND_API_KEY` secret and any
+> local `Config.js` copies.
 
 > The release workflow now generates the App Store screenshots automatically.
 > It signs in with the `SCREENSHOT_EMAIL` / `SCREENSHOT_PASSWORD` demo driver

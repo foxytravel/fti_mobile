@@ -26,6 +26,7 @@ jobs:
           # Device (iphoneos) objects — shared with the release workflow's
           # build job, which compiles exactly the same configuration.
           ccache-key-prefix: ccache-ios-device
+          backend-api-key: ${{ secrets.BACKEND_API_KEY }}
 
       # Read-only deploy key used by fastlane match to clone the private
       # certificates repo over SSH.
