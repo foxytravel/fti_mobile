@@ -222,6 +222,15 @@ platform :ios do
     ENV["TEST_RUNNER_SCREENSHOT_EMAIL"] = email
     ENV["TEST_RUNNER_SCREENSHOT_PASSWORD"] = password
 
+    # fastlane's SnapshotHelper reads SIMULATOR_HOST_HOME and
+    # SIMULATOR_DEVICE_NAME to locate the host's screenshot cache, but
+    # xcodebuild (Xcode 13+) only forwards TEST_RUNNER_-prefixed variables into
+    # the test runner (prefix stripped on the way in). Without these the helper
+    # silently no-ops (its guard returns early) and the screenshots artifact
+    # comes back empty even though every test passes.
+    ENV["TEST_RUNNER_SIMULATOR_HOST_HOME"] = Dir.home
+    ENV["TEST_RUNNER_SIMULATOR_DEVICE_NAME"] = ENV["SNAPSHOT_DEVICE"] || "iPhone 17 Pro Max"
+
     snapshot
   end
 

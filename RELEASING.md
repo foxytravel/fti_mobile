@@ -108,7 +108,8 @@ Screenshot capture runs on the **same UI-test target** used by fastlane
 `snapshot`:
 
 - `ios/fti_coachUITests/ScreenshotsUITests.swift` — drives the app: welcomes →
-  sign in → home → today's charter → charter details → profile, and calls
+  sign in → home → today's charter → charter details → upcoming charter →
+  charter history → notifications → change password → profile, and calls
   `snapshot("NN-...")` on each screen. The demo credentials are read from
   `SCREENSHOT_EMAIL` / `SCREENSHOT_PASSWORD`.
 - `ios/fti_coachUITests/SnapshotHelper.swift` — fastlane's screenshot helper
@@ -143,6 +144,14 @@ installs and GitHub runners do not reliably ship every iPhone), so the name in
 > `TEST_RUNNER_SCREENSHOT_PASSWORD` before calling `snapshot`. Setting only the
 > unprefixed variables makes the test fail its first assertion with empty
 > credentials, even though fastlane itself can see them.
+>
+> The same forwarding is required for `SIMULATOR_HOST_HOME` and
+> `SIMULATOR_DEVICE_NAME`: fastlane's `SnapshotHelper` uses them to locate the
+> host's screenshot cache, and if they don't reach the test runner every
+> `snapshot(...)` call silently no-ops — the job **succeeds** but the
+> `fastlane/screenshots` artifact comes back empty. The lane exports both as
+> `TEST_RUNNER_`-prefixed variables, and `SnapshotHelper` now fails loudly
+> (`XCTFail`) instead of silently returning when they are missing.
 
 ### 5. Replace the Firebase iOS config (required)
 

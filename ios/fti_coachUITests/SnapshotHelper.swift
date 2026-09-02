@@ -174,7 +174,18 @@ open class Snapshot: NSObject {
             let image = screenshot.image
             #endif
 
-            guard var simulator = ProcessInfo().environment["SIMULATOR_DEVICE_NAME"], let screenshotsDir = screenshotsDirectory else { return }
+            guard var simulator = ProcessInfo().environment["SIMULATOR_DEVICE_NAME"] else {
+                let message = "SIMULATOR_DEVICE_NAME is not set in the test runner; screenshots cannot be written. Set TEST_RUNNER_SIMULATOR_DEVICE_NAME in the fastlane screenshots lane."
+                NSLog("%@", message)
+                XCTFail(message)
+                return
+            }
+            guard let screenshotsDir = screenshotsDirectory else {
+                let message = "Screenshots directory is not set (SIMULATOR_HOST_HOME missing in the test runner); screenshots cannot be written. Set TEST_RUNNER_SIMULATOR_HOST_HOME in the fastlane screenshots lane."
+                NSLog("%@", message)
+                XCTFail(message)
+                return
+            }
 
             do {
                 // The simulator name contains "Clone X of " inside the screenshot file when running parallelized UI Tests on concurrent devices

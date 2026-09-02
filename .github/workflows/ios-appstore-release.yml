@@ -141,10 +141,11 @@ jobs:
 
       # snapshot tees the xcodebuild output to ~/Library/Logs/snapshot/ — the
       # only place a "No device found" / failed-assertion screenshot run is
-      # visible. Upload it so a failed job is actually debuggable instead of
-      # leaving a silently empty screenshots artifact.
-      - name: Upload screenshot test log on failure
-        if: failure()
+      # visible. Upload it always (not just on failure): the run can "succeed"
+      # while producing an empty artifact, and the test's NSLog output in this
+      # log is then the only way to tell why.
+      - name: Upload screenshot test log
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: screenshot-test-log

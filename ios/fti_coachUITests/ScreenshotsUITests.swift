@@ -125,11 +125,7 @@ final class ScreenshotsUITests: XCTestCase {
         snapshot("03-Home")
 
         // 4. Today's Charter list
-        XCTAssertTrue(waitForHittable(byID("drawer-toggle")))
-        byID("drawer-toggle").tap()
-        XCTAssertTrue(waitForHittable(byID("drawer-item-Today's Charter")))
-        byID("drawer-item-Today's Charter").tap()
-        XCTAssertTrue(app.staticTexts["Today's Charter"].firstMatch.waitForExistence(timeout: 30))
+        goToDrawerScreen(itemID: "drawer-item-Today's Charter", waitForTitle: "Today's Charter")
         snapshot("04-TodaysCharter")
 
         // 5. Charter details (first job card) — skipped when there is no job.
@@ -144,12 +140,43 @@ final class ScreenshotsUITests: XCTestCase {
             byID("header-back").tap()
         }
 
-        // 6. Profile
+        // 6. Upcoming Charter
+        goToDrawerScreen(itemID: "drawer-item-Upcoming Charter", waitForTitle: "Upcoming Charter")
+        snapshot("06-UpcomingCharter")
+
+        // 7. Charter History
+        goToDrawerScreen(itemID: "drawer-item-Charter History", waitForTitle: "Charter History")
+        snapshot("07-CharterHistory")
+
+        // 8. Notifications
+        goToDrawerScreen(itemID: "drawer-item-Notification", waitForTitle: "Notifications")
+        snapshot("08-Notifications")
+
+        // 9. Change Password
+        goToDrawerScreen(itemID: "drawer-item-Change Password", waitForTitle: "Change Password")
+        snapshot("09-ChangePassword")
+
+        // 10. Profile
+        goToDrawerScreen(itemID: "drawer-profile", waitForTitle: "Profile")
+        snapshot("10-Profile")
+    }
+
+    /// Opens the navigation drawer from the current screen.
+    private func openDrawer() {
         XCTAssertTrue(waitForHittable(byID("drawer-toggle")))
         byID("drawer-toggle").tap()
-        XCTAssertTrue(waitForHittable(byID("drawer-profile")))
-        byID("drawer-profile").tap()
-        XCTAssertTrue(app.staticTexts["Profile"].firstMatch.waitForExistence(timeout: 30))
-        snapshot("06-Profile")
+    }
+
+    /// Opens the drawer, taps a drawer item and waits for the target screen's
+    /// header title to appear.
+    private func goToDrawerScreen(
+        itemID: String,
+        waitForTitle title: String,
+        timeout: TimeInterval = 30
+    ) {
+        openDrawer()
+        XCTAssertTrue(waitForHittable(byID(itemID)))
+        byID(itemID).tap()
+        XCTAssertTrue(app.staticTexts[title].firstMatch.waitForExistence(timeout: timeout))
     }
 }
