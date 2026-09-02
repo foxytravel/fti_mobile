@@ -41,7 +41,7 @@ jobs:
       version: ${{ steps.build.outputs.version }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Set up iOS build environment
         uses: ./.github/actions/setup-ios-build
@@ -96,7 +96,7 @@ jobs:
     timeout-minutes: 90
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Set up iOS build environment
         uses: ./.github/actions/setup-ios-build
@@ -134,7 +134,7 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           # Full history so the release commit/tag can be pushed back.
           fetch-depth: 0
