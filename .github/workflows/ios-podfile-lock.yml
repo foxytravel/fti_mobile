@@ -33,7 +33,7 @@ jobs:
 
       - name: Cache node_modules
         id: node-modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -51,7 +51,7 @@ jobs:
       # Only the pod download cache: this job exists to resolve the graph from
       # scratch, so `ios/Pods` itself is deliberately not restored.
       - name: Cache CocoaPods downloads
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/Library/Caches/CocoaPods
           key: cocoapods-downloads-${{ runner.os }}-${{ hashFiles('ios/Podfile', 'package-lock.json') }}
