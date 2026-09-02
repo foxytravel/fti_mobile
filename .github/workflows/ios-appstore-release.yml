@@ -127,6 +127,19 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
+      # snapshot tees the xcodebuild output to ~/Library/Logs/snapshot/ — the
+      # only place a "No device found" / failed-assertion screenshot run is
+      # visible. Upload it so a failed job is actually debuggable instead of
+      # leaving a silently empty screenshots artifact.
+      - name: Upload screenshot test log on failure
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: screenshot-test-log
+          path: ~/Library/Logs/snapshot/*.log
+          retention-days: 14
+          if-no-files-found: ignore
+
   publish:
     name: Upload, submit for review and tag
     needs: [build, screenshots]

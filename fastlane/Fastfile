@@ -164,6 +164,44 @@ platform :ios do
     )
   end
 
+  # snapshot resolves the device by name against the simulators that already
+  # exist in `xcrun simctl`; it will not create a missing one and instead aborts
+  # with "No device found named '...'". Fresh Xcode installs and GitHub's
+  # macos-26 runners do not reliably ship every iPhone, so make sure the device
+  # the Snapfile names actually exists before snapshot runs.
+  private_lane :ensure_screenshot_device do
+    device_name = ENV["SNAPSHOT_DEVICE"] || "iPhone 17 Pro Max"
+
+    unless `xcrun simctl list devices available`.lines.any? { |line| line.include?(device_name) }
+      UI.important("Simulator '#{device_name}' not found; creating it...")
+
+      # Device type id, e.g. "iPhone 17 Pro Max" ->
+      # "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro-Max".
+      device_type_id = `xcrun simctl list devicetypes`
+        .lines
+        .find { |line| line.include?(device_name) }
+        .to_s[/com\.apple\.CoreSimulator\.SimDeviceType\.[^)]*/, 0]
+      UI.user_error!("No device type found for '#{device_name}'") if device_type_id.to_s.empty?
+
+      # Newest available iOS runtime, e.g.
+      # "com.apple.CoreSimulator.SimRuntime.iOS-26-4".
+      runtime_id = `xcrun simctl list runtimes available`
+        .lines
+        .grep(/com\.apple\.CoreSimulator\.SimRuntime\.iOS-/)
+        .map { |line| line[/com\.apple\.CoreSimulator\.SimRuntime\.iOS-[0-9-]+/] }
+        .compact
+        .max_by { |id| id.split("-").drop(2).map(&:to_i) }
+      UI.user_error!("No iOS simulator runtime available") if runtime_id.to_s.empty?
+
+      UI.message("Creating '#{device_name}' (#{device_type_id}, #{runtime_id})")
+      udid = `xcrun simctl create "#{device_name}" "#{device_type_id}" "#{runtime_id}"`.strip
+      UI.user_error!("Failed to create simulator '#{device_name}'") if udid.to_s.empty?
+      UI.success("Created simulator '#{device_name}' (UDID #{udid})")
+    else
+      UI.message("Simulator '#{device_name}' already available")
+    end
+  end
+
   desc "Capture App Store screenshots by driving the app through XCUITest"
   desc "Requires SCREENSHOT_EMAIL and SCREENSHOT_PASSWORD (demo driver account)."
   lane :screenshots do
@@ -171,6 +209,8 @@ platform :ios do
     password = ENV["SCREENSHOT_PASSWORD"].to_s
     UI.user_error!("SCREENSHOT_EMAIL must be set (demo driver account)") if email.empty?
     UI.user_error!("SCREENSHOT_PASSWORD must be set (demo driver account)") if password.empty?
+
+    ensure_screenshot_device
 
     # The test runs inside the simulator, in a different process tree to
     # fastlane, and xcodebuild does not forward arbitrary host environment

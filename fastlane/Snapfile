@@ -2,7 +2,9 @@
 #
 # Screenshots are captured on the largest iPhone (6.9"), which is the display
 # size App Store Connect requires. If the simulator name differs on your Xcode
-# version, override it via the SNAPSHOT_DEVICE environment variable.
+# version, override it via the SNAPSHOT_DEVICE environment variable. The
+# `screenshots` lane auto-creates the device if it is missing (fresh Xcode
+# installs and GitHub runners do not reliably ship every iPhone simulator).
 
 # The build configuration used for tests comes from the shared scheme's Test
 # action, which is set to Release so the JS bundle is embedded (Debug builds
