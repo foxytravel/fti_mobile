@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 90
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up iOS build environment
         uses: ./.github/actions/setup-ios-build
@@ -30,7 +30,7 @@ jobs:
       # Read-only deploy key used by fastlane match to clone the private
       # certificates repo over SSH.
       - name: Load certificates repo deploy key
-        uses: webfactory/ssh-agent@v0.9.1
+        uses: webfactory/ssh-agent@v0.10.0
         with:
           ssh-private-key: ${{ secrets.CERTS_DEPLOY_KEY }}
 
@@ -51,7 +51,7 @@ jobs:
 
       - name: Upload build log on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: xcode-build-log
           path: ~/Library/Logs/gym/*.log
