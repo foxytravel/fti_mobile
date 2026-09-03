@@ -114,25 +114,29 @@ final class ScreenshotsUITests: XCTestCase {
         let welcomeButton = byID("welcome-login-button")
         XCTAssertTrue(waitForHittable(welcomeButton, timeout: 60))
         app.wait(for: .runningForeground, timeout: 10)
-        sleep(3)
+        // Hermes keeps binding the huge Release bundle well after the first
+        // frame appears; without this the synthesized tap is delivered before
+        // the RNTouchable handler is live and is silently dropped.
+        sleep(10)
         snapshot("01-Welcome")
 
-        // 2. Sign in screen. The app can crash once and be relaunched by
-        // SpringBoard while the JS bundle is still evaluating; a tap landing
-        // during that window is dropped. Retry the tap until the login screen
-        // actually appears, re-waiting for the button each time in case the
-        // relaunch put us back on a fresh welcome screen.
+        // 2. Sign in screen. The app can take a long time on a cold start before
+        // the touch pipeline accepts taps; a tap landing during that window is
+        // dropped. Retry the tap until the login screen actually appears,
+        // re-waiting for the button each time and giving the app a longer
+        // settle between attempts.
         let loginEmail = byID("login-email")
         var navigated = false
-        for _ in 0..<3 {
-            if loginEmail.waitForExistence(timeout: 5) {
+        for attempt in 0..<4 {
+            if loginEmail.waitForExistence(timeout: 8) {
                 navigated = true
                 break
             }
             XCTAssertTrue(waitForHittable(welcomeButton, timeout: 30))
             welcomeButton.tap()
+            sleep(5)
         }
-        XCTAssertTrue(navigated || loginEmail.waitForExistence(timeout: 20),
+        XCTAssertTrue(navigated || loginEmail.waitForExistence(timeout: 30),
                       "login screen never appeared after tapping welcome-login-button")
 
         let emailField = app.textFields["login-email"]
