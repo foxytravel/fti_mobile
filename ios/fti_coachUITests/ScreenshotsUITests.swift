@@ -58,21 +58,27 @@ final class ScreenshotsUITests: XCTestCase {
         return element.exists && element.isHittable
     }
 
-    /// Taps the iOS permission alerts (notifications, location, ...) that the
-    /// Springboard shows shortly after launch.
+    /// Dismisses the iOS permission alerts (notifications, location, ...) that
+    /// the Springboard shows shortly after launch.
+    ///
+    /// Permissions are deliberately DENIED, not granted: the app requests
+    /// location (react-native-get-location) and notification permissions
+    /// during startup, and granting them on a first cold launch has been seen
+    /// to crash the Release build right after the permission callback fires.
+    /// Denying is safe — the app handles both denials gracefully (location has
+    /// a .catch, notifications are optional) — and it keeps the app in the
+    /// stable welcome state needed for screenshots.
     private func dismissSystemAlertsIfPresent() {
         let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
         let preferred = [
-            "Allow While Using App",
-            "Allow Once",
-            "Allow",
-            "OK",
-            "Not Now",
             "Don't Allow",
+            "Not Now",
+            "Cancel",
+            "OK",
         ]
-        for _ in 0..<8 {
+        for _ in 0..<16 {
             let alert = springboard.alerts.firstMatch
-            guard alert.waitForExistence(timeout: 3) else { return }
+            guard alert.waitForExistence(timeout: 5) else { return }
             if let button = preferred
                 .compactMap({ alert.buttons[$0].exists ? alert.buttons[$0] : nil })
                 .first {
@@ -101,9 +107,14 @@ final class ScreenshotsUITests: XCTestCase {
         // simulator the JS bundle can take a while to evaluate; wait for the
         // button to be hittable (not just present) before tapping, otherwise
         // the tap can land before the touch handlers are attached and be
-        // silently dropped.
+        // silently dropped. The startup permission alerts are denied (see
+        // dismissSystemAlertsIfPresent) so the app stays stable; a short
+        // settle delay gives the first frame a moment to settle before the
+        // screenshot is requested.
         let welcomeButton = byID("welcome-login-button")
         XCTAssertTrue(waitForHittable(welcomeButton, timeout: 60))
+        app.wait(for: .runningForeground, timeout: 10)
+        sleep(3)
         snapshot("01-Welcome")
         welcomeButton.tap()
 
