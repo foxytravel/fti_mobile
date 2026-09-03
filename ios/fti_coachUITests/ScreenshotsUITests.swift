@@ -97,13 +97,18 @@ final class ScreenshotsUITests: XCTestCase {
             """
         )
 
-        // 1. Welcome screen
-        XCTAssertTrue(byID("welcome-login-button").waitForExistence(timeout: 20))
+        // 1. Welcome screen. The app is a Release/Hermes build, so on a cold
+        // simulator the JS bundle can take a while to evaluate; wait for the
+        // button to be hittable (not just present) before tapping, otherwise
+        // the tap can land before the touch handlers are attached and be
+        // silently dropped.
+        let welcomeButton = byID("welcome-login-button")
+        XCTAssertTrue(waitForHittable(welcomeButton, timeout: 60))
         snapshot("01-Welcome")
+        welcomeButton.tap()
 
-        // 2. Sign in screen
-        byID("welcome-login-button").tap()
-        XCTAssertTrue(byID("login-email").waitForExistence(timeout: 10))
+        // 2. Sign in screen. Navigation is delayed on a slow cold start too.
+        XCTAssertTrue(byID("login-email").waitForExistence(timeout: 30))
 
         let emailField = app.textFields["login-email"]
         emailField.tap()
@@ -115,13 +120,13 @@ final class ScreenshotsUITests: XCTestCase {
 
         // Dismiss the keyboard by tapping the screen title, then log in.
         app.staticTexts["LOG IN"].firstMatch.tap()
-        XCTAssertTrue(byID("login-button").waitForExistence(timeout: 5))
+        XCTAssertTrue(byID("login-button").waitForExistence(timeout: 15))
         snapshot("02-SignIn")
         byID("login-button").tap()
 
         // 3. Home / dashboard. The header only appears once the profile and job
         //    data have loaded, so this doubles as a "logged in" signal.
-        XCTAssertTrue(app.staticTexts["Charter"].firstMatch.waitForExistence(timeout: 45))
+        XCTAssertTrue(app.staticTexts["Charter"].firstMatch.waitForExistence(timeout: 60))
         snapshot("03-Home")
 
         // 4. Today's Charter list
@@ -130,12 +135,12 @@ final class ScreenshotsUITests: XCTestCase {
 
         // 5. Charter details (first job card) — skipped when there is no job.
         let charterDetail = app.buttons["View Charter Detail"].firstMatch
-        if charterDetail.waitForExistence(timeout: 5) {
+        if charterDetail.waitForExistence(timeout: 10) {
             if !charterDetail.isHittable {
                 app.swipeUp()
             }
             charterDetail.tap()
-            XCTAssertTrue(app.staticTexts["Charter Details"].firstMatch.waitForExistence(timeout: 30))
+            XCTAssertTrue(app.staticTexts["Charter Details"].firstMatch.waitForExistence(timeout: 45))
             snapshot("05-CharterDetails")
             byID("header-back").tap()
         }
@@ -163,7 +168,7 @@ final class ScreenshotsUITests: XCTestCase {
 
     /// Opens the navigation drawer from the current screen.
     private func openDrawer() {
-        XCTAssertTrue(waitForHittable(byID("drawer-toggle")))
+        XCTAssertTrue(waitForHittable(byID("drawer-toggle"), timeout: 30))
         byID("drawer-toggle").tap()
     }
 
@@ -172,7 +177,7 @@ final class ScreenshotsUITests: XCTestCase {
     private func goToDrawerScreen(
         itemID: String,
         waitForTitle title: String,
-        timeout: TimeInterval = 30
+        timeout: TimeInterval = 45
     ) {
         openDrawer()
         XCTAssertTrue(waitForHittable(byID(itemID)))
