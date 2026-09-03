@@ -141,13 +141,17 @@ final class ScreenshotsUITests: XCTestCase {
         XCTAssertTrue(navigated || loginTitle.waitForExistence(timeout: 30),
                       "login screen never appeared after tapping welcome-login-button")
 
-        let emailField = byID("login-email")
+        // The email field is the only plain textField on this screen (the
+        // password field is a secureTextField), so address it by type — the
+        // FloatingLabelInput's testID does not reliably reach the AX tree.
+        let emailField = app.textFields.firstMatch
         XCTAssertTrue(emailField.waitForExistence(timeout: 15),
-                      "login-email field not found on the sign-in screen")
+                      "email field not found on the sign-in screen")
         emailField.tap()
         emailField.typeText(email)
 
-        let passwordField = app.secureTextFields["login-password"]
+        let passwordField = app.secureTextFields.firstMatch
+        XCTAssertTrue(passwordField.waitForExistence(timeout: 10))
         passwordField.tap()
         passwordField.typeText(password)
 
