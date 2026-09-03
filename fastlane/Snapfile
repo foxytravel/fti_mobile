@@ -20,6 +20,12 @@ output_directory("fastlane/screenshots")
 clear_previous_screenshots(true)
 stop_after_first_error(true)
 
+# A failing test is re-run by default (number_of_retries = 2), which triples
+# the wall clock of a broken run and produces a flurry of identical errors.
+# The screenshot test drives a full release app cold start; a failure here is
+# a real problem to fix, not a transient to retry through, so fail fast.
+number_of_retries(0)
+
 workspace("ios/fti_coach.xcworkspace")
 scheme("fti_coach")
 
