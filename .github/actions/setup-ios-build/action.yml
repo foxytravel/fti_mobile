@@ -168,7 +168,7 @@ runs:
           ios/fti_coach.xcworkspace
           ios/build/generated
           ~/Library/Caches/CocoaPods
-        key: pods-v3-${{ runner.os }}-${{ hashFiles('ios/Podfile', 'ios/Podfile.lock', 'package-lock.json') }}
+        key: pods-v4-${{ runner.os }}-${{ hashFiles('ios/Podfile', 'ios/Podfile.lock', 'package-lock.json') }}
 
     # A restored Pods project hardcodes the absolute path to the ccache binary
     # that existed when it was generated. If a runner image ever moves it, the
@@ -176,6 +176,14 @@ runs:
     # regenerate if the cached project has no ccache wrapper at all — a project
     # generated before ccache was on PATH silently disables the compiler cache
     # and would otherwise be reused forever.
+    #
+    # The Podfile's post_install keeps ccache on CC/CXX (compile cache) but
+    # deletes LD/LDPLUSPLUS so linking falls back to Xcode's clang driver
+    # ("ld: library 'Pods-fti_coach' not found" otherwise). A cached project
+    # generated before that deletion still passes the `ccache-clang.sh` grep
+    # below (CC/CXX still reference it), so detect the leftover linker wiring
+    # explicitly: LDPLUSPLUS is only ever set by react_native_post_install, so
+    # its presence in a cached project means the deletion never ran.
     - name: Check cached Pods project is still usable
       id: pods-check
       if: steps.pods.outputs.cache-hit == 'true'
@@ -190,6 +198,10 @@ runs:
         fi
         if ! grep -q 'ccache-clang.sh' "$pbx"; then
           echo "cached Pods project has no ccache wired in; regenerating the Pods project"
+          echo "stale=true" >> "$GITHUB_OUTPUT"
+        fi
+        if grep -qE 'LDPLUSPLUS[[:space:]]*=' "$pbx"; then
+          echo "cached Pods project still wires ccache into the linker; regenerating the Pods project"
           echo "stale=true" >> "$GITHUB_OUTPUT"
         fi
 
