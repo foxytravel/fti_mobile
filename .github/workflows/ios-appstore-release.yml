@@ -152,6 +152,19 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
+      # The app crashes during the simulator launch (the test sees the app
+      # process replaced mid-run); the DiagnosticReports .ips files are the
+      # only place the crash backtrace lives. Upload them on failure so a
+      # broken screenshot run is diagnosable without re-running.
+      - name: Upload simulator crash reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: simulator-crash-reports
+          path: ~/Library/Logs/DiagnosticReports/*.ips
+          retention-days: 14
+          if-no-files-found: ignore
+
   publish:
     name: Upload, submit for review and tag
     needs: [build, screenshots]
