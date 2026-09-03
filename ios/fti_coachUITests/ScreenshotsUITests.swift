@@ -124,11 +124,13 @@ final class ScreenshotsUITests: XCTestCase {
         // the touch pipeline accepts taps; a tap landing during that window is
         // dropped. Retry the tap until the login screen actually appears,
         // re-waiting for the button each time and giving the app a longer
-        // settle between attempts.
-        let loginEmail = byID("login-email")
+        // settle between attempts. Navigation is detected via the "LOG IN"
+        // header text (a plain Text, always exposed) rather than login-email,
+        // whose testID may not propagate through the FloatingLabelInput wrapper.
+        let loginTitle = app.staticTexts["LOG IN"]
         var navigated = false
-        for attempt in 0..<4 {
-            if loginEmail.waitForExistence(timeout: 8) {
+        for _ in 0..<4 {
+            if loginTitle.waitForExistence(timeout: 8) {
                 navigated = true
                 break
             }
@@ -136,10 +138,12 @@ final class ScreenshotsUITests: XCTestCase {
             welcomeButton.tap()
             sleep(5)
         }
-        XCTAssertTrue(navigated || loginEmail.waitForExistence(timeout: 30),
+        XCTAssertTrue(navigated || loginTitle.waitForExistence(timeout: 30),
                       "login screen never appeared after tapping welcome-login-button")
 
-        let emailField = app.textFields["login-email"]
+        let emailField = byID("login-email")
+        XCTAssertTrue(emailField.waitForExistence(timeout: 15),
+                      "login-email field not found on the sign-in screen")
         emailField.tap()
         emailField.typeText(email)
 
