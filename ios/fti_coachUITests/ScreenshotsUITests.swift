@@ -116,10 +116,24 @@ final class ScreenshotsUITests: XCTestCase {
         app.wait(for: .runningForeground, timeout: 10)
         sleep(3)
         snapshot("01-Welcome")
-        welcomeButton.tap()
 
-        // 2. Sign in screen. Navigation is delayed on a slow cold start too.
-        XCTAssertTrue(byID("login-email").waitForExistence(timeout: 30))
+        // 2. Sign in screen. The app can crash once and be relaunched by
+        // SpringBoard while the JS bundle is still evaluating; a tap landing
+        // during that window is dropped. Retry the tap until the login screen
+        // actually appears, re-waiting for the button each time in case the
+        // relaunch put us back on a fresh welcome screen.
+        let loginEmail = byID("login-email")
+        var navigated = false
+        for _ in 0..<3 {
+            if loginEmail.waitForExistence(timeout: 5) {
+                navigated = true
+                break
+            }
+            XCTAssertTrue(waitForHittable(welcomeButton, timeout: 30))
+            welcomeButton.tap()
+        }
+        XCTAssertTrue(navigated || loginEmail.waitForExistence(timeout: 20),
+                      "login screen never appeared after tapping welcome-login-button")
 
         let emailField = app.textFields["login-email"]
         emailField.tap()
