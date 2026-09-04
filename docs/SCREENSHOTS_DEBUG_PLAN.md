@@ -415,6 +415,7 @@ Fill in as you go. One entry per CI run.
 | 2026-09-04 16:13Z | ios-screenshots-debug (run 33893933016) | `b852bb9` | wait for keyboard after tapping label | 26.0 s | email `typeText`: no descendant had keyboard focus | H1b | Keyboard appeared, proving native focus, but no AX element reported focus. App PID 43834 constant. |
 | 2026-09-04 17:00Z | ios-screenshots-debug (run 33898252859) | `183037f` | coordinate-tap label + focus settle delay | 11.5 s | email `typeText`: no descendant had keyboard focus | H1b | Keyboard appeared; coordinate tap and delay did not expose a focused AX element. App PID 44406 constant. |
 | 2026-09-04 17:38Z | ios-screenshots-debug (run 33901656491) | `d16b41e` | retry `.textField` lookup after native focus | 25.6 s | fallback email `typeText`: no descendant had keyboard focus | H1b | Keyboard appeared, but no `.textField` appeared after focus. App PID 41409 constant. No app `.ips`. |
+| 2026-09-04 19:29Z | ios-screenshots-debug (run 33911411329) | `95b2684` | disable accessibility on FloatingLabelInput's touchable ancestor | 31.8 s | `Charter` did not appear within 60 s after login tap | H1b fixed; H2 now live | XCTest found and typed into both fields, then captured 01-Welcome and 02-SignIn. App PID 51628 remained constant; the only `.ips` was for the unrelated runner `conftest` process. |
 
 PID attribution correction: XCTest logs the PID of the application targeted by
 each query. The lower PID in the earlier rows belongs to SpringBoard alert
