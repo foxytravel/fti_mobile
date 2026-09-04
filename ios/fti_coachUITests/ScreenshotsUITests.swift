@@ -219,18 +219,19 @@ final class ScreenshotsUITests: XCTestCase {
         // The email field is wrapped in FloatingLabelInput which does not
         // expose the inner TextInput as a .textField AX type. The static
         // label (an Other element with the label text) has onPress={setFocus}
-        // so tapping it focuses the inner TextInput. We tap the label, then
-        // type into the now-focused field.
+        // so tapping it focuses the inner TextInput. We tap the label, wait
+        // for the keyboard to appear, then type.
         let emailLabel = app.otherElements["Email"].firstMatch
         XCTAssertTrue(waitForHittable(emailLabel, timeout: 15), "Email label not found")
         emailLabel.tap()
-        // After tapping the label, the inner TextInput should be focused.
-        // Type directly into the app (goes to focused element).
+        // Wait for keyboard to appear, confirming the TextInput gained focus.
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10), "Keyboard did not appear after tapping Email label")
         app.typeText(email)
 
         let passwordLabel = app.otherElements["Password"].firstMatch
         XCTAssertTrue(waitForHittable(passwordLabel, timeout: 10), "Password label not found")
         passwordLabel.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10), "Keyboard did not appear after tapping Password label")
         app.typeText(password)
 
         // Dismiss the keyboard by tapping the screen title, then log in.
