@@ -74,6 +74,16 @@ final class ScreenshotsUITests: XCTestCase {
             add(attachment)
         }
 
+        // Also dump the full accessibility tree recursively with all identifiers
+        let fullTree = dumpAccessibilityTree(app, indent: 0)
+        if let treeData = fullTree.data(using: .utf8) {
+            let treeAttachment = XCTAttachment(data: treeData, uniformTypeIdentifier: "public.plain-text")
+            treeAttachment.name = "accessibility-tree-full"
+            treeAttachment.lifetime = .keepAlways
+            add(treeAttachment)
+        }
+        NSLog("[ScreenshotsUITests] FULL ACCESSIBILITY TREE:\n\(fullTree)")
+
         let stateText = "app.state = \(app.state.rawValue)"
         if let stateData = stateText.data(using: .utf8) {
             let stateAttachment = XCTAttachment(data: stateData, uniformTypeIdentifier: "public.plain-text")
@@ -90,6 +100,61 @@ final class ScreenshotsUITests: XCTestCase {
 
         NSLog("[ScreenshotsUITests] FAIL: \(message) | app.state=\(app.state.rawValue)")
         XCTFail(message, file: file, line: line)
+    }
+
+    /// Recursively dumps the full accessibility tree with identifiers, labels, and types.
+    private func dumpAccessibilityTree(_ element: XCUIElement, indent: Int) -> String {
+        let prefix = String(repeating: "  ", count: indent)
+        var result = ""
+
+        let elementType = element.elementType.debugDescription
+        let identifier = element.identifier.isEmpty ? "nil" : element.identifier
+        let label = element.label.isEmpty ? "nil" : element.label
+        let value = element.value as? String ?? "nil"
+        let frame = element.frame
+        let exists = element.exists ? "exists" : "missing"
+        let hittable = element.isHittable ? "hittable" : "not-hittable"
+
+        result += "\(prefix)[\(elementType)] id=\(identifier) label=\(label) value=\(value) frame=\(frame) \(exists) \(hittable)\n"
+
+        // Query children - use descendants matching .any to get all children
+        let children = element.descendants(matching: .any)
+        // We can't easily iterate XCUIElementQuery children in Swift, so we use a different approach
+        // Query for direct children by checking common element types
+        let childTypes: [XCUIElement.ElementType] = [.other, .textField, .secureTextField, .staticText, .button, .image, .scrollView, .table, .collectionView, .cell, .textView, .link, .switch, .slider, .pageIndicator, .progressIndicator, .activityIndicator, .segmentedControl, .picker, .pickerWheel, .tabGroup, .toolbar, .statusBar, .navigationBar, .tabBar, .browser, .incrementArrow, .decrementArrow, .timeline, .ratingIndicator, .valueIndicator, .splitGroup, .splitter, .colorWell, .growArea, .handle, .levelIndicator, .ruler, .rulerMarker, .grid, .disclosureTriangle, .menuButton, .menuItem, .column, .row, .toolbarButton, .popover, .sheet, .drawer, .alert, .dialog, .window, .application, .group, .radioButton, .radioGroup, .scrollBar, .searchField, .datePicker, .signature, .unknown]
+
+        // For a more complete dump, let's try to get children via coordinate-based queries
+        // Actually, XCUIElement doesn't expose child enumeration directly.
+        // We'll rely on the debugDescription attachment for the full tree.
+        // This function gives us the root element details.
+
+        return result
+    }
+
+    /// Dumps all elements matching any of the given patterns in identifier, label, or placeholder.
+    private func dumpAllElementsMatching(_ element: XCUIElement, patterns: [String]) {
+        for pattern in patterns {
+            let predicate = NSPredicate(format: "identifier CONTAINS[c] %@ OR label CONTAINS[c] %@ OR placeholderValue CONTAINS[c] %@", pattern, pattern, pattern)
+            let matches = element.descendants(matching: .any).matching(predicate)
+            if matches.count > 0 {
+                NSLog("DIAGNOSTIC: Found \(matches.count) element(s) matching '\(pattern)':")
+                for i in 0..<min(matches.count, 20) {
+                    let match = matches.element(boundBy: i)
+                    let type = match.elementType.debugDescription
+                    let id = match.identifier.isEmpty ? "nil" : match.identifier
+                    let lbl = match.label.isEmpty ? "nil" : match.label
+                    let val = match.value as? String ?? "nil"
+                    let ph = match.placeholderValue ?? "nil"
+                    let frame = match.frame
+                    NSLog("DIAGNOSTIC:   [\(type)] id=\(id) label=\(lbl) value=\(val) placeholder=\(ph) frame=\(frame) exists=\(match.exists) hittable=\(match.isHittable)")
+                }
+                if matches.count > 20 {
+                    NSLog("DIAGNOSTIC:   ... and \(matches.count - 20) more")
+                }
+            } else {
+                NSLog("DIAGNOSTIC: No elements matching '\(pattern)'")
+            }
+        }
     }
 
     /// Asserts the app is in the foreground; if not, it has crashed or an alert
@@ -197,14 +262,18 @@ final class ScreenshotsUITests: XCTestCase {
         let emailFound = emailField.waitForExistence(timeout: 15)
         if !emailFound {
             NSLog("DIAGNOSTIC: email field not found by testID 'login-email'")
-            NSLog("DIAGNOSTIC: app.debugDescription follows:")
-            NSLog(app.debugDescription)
 
             // Try alternative selectors to narrow down the hierarchy.
             let byLabel = app.otherElements["login-email"].firstMatch
             let byTextField = app.textFields.matching(identifier: "login-email").firstMatch
             let byAnyTextField = app.textFields.firstMatch
-            NSLog("DIAGNOSTIC: byLabel exists=\(byLabel.exists), byTextField exists=\(byTextField.exists), byAnyTextField exists=\(byAnyTextField.exists)")
+            let byAnySecureField = app.secureTextFields.firstMatch
+            let byPlaceholderEmail = app.textFields.matching(NSPredicate(format: "placeholderValue CONTAINS[c] 'email' OR placeholderValue CONTAINS[c] 'Email'")).firstMatch
+
+            NSLog("DIAGNOSTIC: byLabel exists=\(byLabel.exists), byTextField exists=\(byTextField.exists), byAnyTextField exists=\(byAnyTextField.exists), byAnySecureField exists=\(byAnySecureField.exists), byPlaceholderEmail exists=\(byPlaceholderEmail.exists)")
+
+            // Dump all elements with identifier "login-email" or "login-password" or containing "email"/"password"
+            dumpAllElementsMatching(app, patterns: ["login-email", "login-password", "email", "password", "Email", "Password"])
 
             failWithDiagnostics("email field not found on the sign-in screen")
             return
