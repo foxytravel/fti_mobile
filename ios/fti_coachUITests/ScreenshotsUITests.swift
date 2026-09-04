@@ -217,38 +217,21 @@ final class ScreenshotsUITests: XCTestCase {
                       "login screen never appeared after tapping welcome-login-button")
 
         // The email field is wrapped in FloatingLabelInput which does not
-        // expose the inner TextInput as a .textField AX type. Query by
-        // testID via the View wrapper (accessible=true, accessibilityLabel
-        // set from testID).
-        // Dump the full accessibility tree so we can see what elements are
-        // actually on screen if the email field query fails (H1b diagnosis).
-        let emailField = byID("login-email")
-        let emailFound = emailField.waitForExistence(timeout: 15)
-        if !emailFound {
-            NSLog("DIAGNOSTIC: email field not found by testID 'login-email'")
+        // expose the inner TextInput as a .textField AX type. The static
+        // label (an Other element with the label text) has onPress={setFocus}
+        // so tapping it focuses the inner TextInput. We tap the label, then
+        // type into the now-focused field.
+        let emailLabel = app.otherElements["Email"].firstMatch
+        XCTAssertTrue(waitForHittable(emailLabel, timeout: 15), "Email label not found")
+        emailLabel.tap()
+        // After tapping the label, the inner TextInput should be focused.
+        // Type directly into the app (goes to focused element).
+        app.typeText(email)
 
-            // Try alternative selectors to narrow down the hierarchy.
-            let byLabel = app.otherElements["login-email"].firstMatch
-            let byTextField = app.textFields.matching(identifier: "login-email").firstMatch
-            let byAnyTextField = app.textFields.firstMatch
-            let byAnySecureField = app.secureTextFields.firstMatch
-            let byPlaceholderEmail = app.textFields.matching(NSPredicate(format: "placeholderValue CONTAINS[c] 'email' OR placeholderValue CONTAINS[c] 'Email'")).firstMatch
-
-            NSLog("DIAGNOSTIC: byLabel exists=\(byLabel.exists), byTextField exists=\(byTextField.exists), byAnyTextField exists=\(byAnyTextField.exists), byAnySecureField exists=\(byAnySecureField.exists), byPlaceholderEmail exists=\(byPlaceholderEmail.exists)")
-
-            // Dump all elements with identifier "login-email" or "login-password" or containing "email"/"password"
-            dumpAllElementsMatching(app, patterns: ["login-email", "login-password", "email", "password", "Email", "Password"])
-
-            failWithDiagnostics("email field not found on the sign-in screen")
-            return
-        }
-        emailField.tap()
-        emailField.typeText(email)
-
-        let passwordField = byID("login-password")
-        XCTAssertTrue(passwordField.waitForExistence(timeout: 10))
-        passwordField.tap()
-        passwordField.typeText(password)
+        let passwordLabel = app.otherElements["Password"].firstMatch
+        XCTAssertTrue(waitForHittable(passwordLabel, timeout: 10), "Password label not found")
+        passwordLabel.tap()
+        app.typeText(password)
 
         // Dismiss the keyboard by tapping the screen title, then log in.
         app.staticTexts["LOG IN"].firstMatch.tap()
