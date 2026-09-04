@@ -74,15 +74,8 @@ final class ScreenshotsUITests: XCTestCase {
             add(attachment)
         }
 
-        // Also dump the full accessibility tree recursively with all identifiers
-        let fullTree = dumpAccessibilityTree(app, indent: 0)
-        if let treeData = fullTree.data(using: .utf8) {
-            let treeAttachment = XCTAttachment(data: treeData, uniformTypeIdentifier: "public.plain-text")
-            treeAttachment.name = "accessibility-tree-full"
-            treeAttachment.lifetime = .keepAlways
-            add(treeAttachment)
-        }
-        NSLog("[ScreenshotsUITests] FULL ACCESSIBILITY TREE:\n\(fullTree)")
+        // Log the full debugDescription to the test log (may be truncated in CI)
+        NSLog("[ScreenshotsUITests] FULL app.debugDescription:\n\(app.debugDescription)")
 
         let stateText = "app.state = \(app.state.rawValue)"
         if let stateData = stateText.data(using: .utf8) {
@@ -102,35 +95,6 @@ final class ScreenshotsUITests: XCTestCase {
         XCTFail(message, file: file, line: line)
     }
 
-    /// Recursively dumps the full accessibility tree with identifiers, labels, and types.
-    private func dumpAccessibilityTree(_ element: XCUIElement, indent: Int) -> String {
-        let prefix = String(repeating: "  ", count: indent)
-        var result = ""
-
-        let elementType = element.elementType.debugDescription
-        let identifier = element.identifier.isEmpty ? "nil" : element.identifier
-        let label = element.label.isEmpty ? "nil" : element.label
-        let value = element.value as? String ?? "nil"
-        let frame = element.frame
-        let exists = element.exists ? "exists" : "missing"
-        let hittable = element.isHittable ? "hittable" : "not-hittable"
-
-        result += "\(prefix)[\(elementType)] id=\(identifier) label=\(label) value=\(value) frame=\(frame) \(exists) \(hittable)\n"
-
-        // Query children - use descendants matching .any to get all children
-        let children = element.descendants(matching: .any)
-        // We can't easily iterate XCUIElementQuery children in Swift, so we use a different approach
-        // Query for direct children by checking common element types
-        let childTypes: [XCUIElement.ElementType] = [.other, .textField, .secureTextField, .staticText, .button, .image, .scrollView, .table, .collectionView, .cell, .textView, .link, .switch, .slider, .pageIndicator, .progressIndicator, .activityIndicator, .segmentedControl, .picker, .pickerWheel, .tabGroup, .toolbar, .statusBar, .navigationBar, .tabBar, .browser, .incrementArrow, .decrementArrow, .timeline, .ratingIndicator, .valueIndicator, .splitGroup, .splitter, .colorWell, .growArea, .handle, .levelIndicator, .ruler, .rulerMarker, .grid, .disclosureTriangle, .menuButton, .menuItem, .column, .row, .toolbarButton, .popover, .sheet, .drawer, .alert, .dialog, .window, .application, .group, .radioButton, .radioGroup, .scrollBar, .searchField, .datePicker, .signature, .unknown]
-
-        // For a more complete dump, let's try to get children via coordinate-based queries
-        // Actually, XCUIElement doesn't expose child enumeration directly.
-        // We'll rely on the debugDescription attachment for the full tree.
-        // This function gives us the root element details.
-
-        return result
-    }
-
     /// Dumps all elements matching any of the given patterns in identifier, label, or placeholder.
     private func dumpAllElementsMatching(_ element: XCUIElement, patterns: [String]) {
         for pattern in patterns {
@@ -140,7 +104,7 @@ final class ScreenshotsUITests: XCTestCase {
                 NSLog("DIAGNOSTIC: Found \(matches.count) element(s) matching '\(pattern)':")
                 for i in 0..<min(matches.count, 20) {
                     let match = matches.element(boundBy: i)
-                    let type = match.elementType.debugDescription
+                    let type = "\(match.elementType)"
                     let id = match.identifier.isEmpty ? "nil" : match.identifier
                     let lbl = match.label.isEmpty ? "nil" : match.label
                     let val = match.value as? String ?? "nil"
