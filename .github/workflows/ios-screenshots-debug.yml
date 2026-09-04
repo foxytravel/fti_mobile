@@ -89,17 +89,6 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
-      - name: Upload xcresult bundle
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: xcresult
-          path: |
-            ios/build/snapshot-derived/Logs/Test/*.xcresult
-            fastlane/screenshots/**/*.xcresult
-          retention-days: 14
-          if-no-files-found: ignore
-
       - name: Report ccache statistics
         if: always()
         run: ccache --show-stats --verbose || true
