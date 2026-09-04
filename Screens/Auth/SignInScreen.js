@@ -40,7 +40,15 @@ const SignInScreen = props => {
 
   const loginUser = async () => {
     setLoading(true);
-    const token = await messaging().getToken();
+    let token = '';
+    try {
+      token = await messaging().getToken();
+    } catch (error) {
+      console.warn(
+        'FCM token unavailable, logging in without one',
+        error?.message,
+      );
+    }
 
     var data = new FormData();
     data.append('API_KEY', API_KEY);
