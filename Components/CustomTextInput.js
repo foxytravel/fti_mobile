@@ -10,14 +10,7 @@ import Fonts from '../Constants/Fonts';
 
 const CustomTextInput = props => {
   return (
-    <View
-      style={{
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
-        alignItems: 'center',
-      }}>
-      <FloatingLabelInput
+    <FloatingLabelInput
         staticLabel={true}
         {...props}
         customLabelStyles={{
@@ -40,7 +33,15 @@ const CustomTextInput = props => {
           marginLeft: -5,
         }}
         label={props.label}
-        containerStyles={{borderBottomWidth: 0.5, marginTop: 5, marginLeft: 10}}
+        containerStyles={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          width: '100%',
+          alignItems: 'center',
+          borderBottomWidth: 0.5,
+          marginTop: 5,
+          marginLeft: 10,
+        }}
         value={props.value}
         onChangeText={text => props.action(text)}
         customShowPasswordComponent={
@@ -71,7 +72,6 @@ const CustomTextInput = props => {
           />
         ) : null
       ) : null}
-    </View>
   );
 };
 
