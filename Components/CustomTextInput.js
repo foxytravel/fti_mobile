@@ -14,6 +14,8 @@ const CustomTextInput = props => {
       <FloatingLabelInput
         staticLabel={true}
         {...props}
+        accessible={true}
+        accessibilityLabel={props.label}
         customLabelStyles={{
           colorBlurred: '#797979',
           colorFocused: '#797979',
