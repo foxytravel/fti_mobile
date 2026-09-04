@@ -260,6 +260,11 @@ platform :ios do
     ENV["TEST_RUNNER_SIMULATOR_HOST_HOME"] = Dir.home
     ENV["TEST_RUNNER_SIMULATOR_DEVICE_NAME"] = ENV["SNAPSHOT_DEVICE"] || "iPhone 17 Pro Max"
 
+    # xcodebuild -showBuildSettings can take a long time on CI with a large
+    # project.  The default 3 s × 4 retries is far too short.
+    ENV["FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT"] = "60"
+    ENV["FASTLANE_XCODEBUILD_SETTINGS_RETRIES"] = "4"
+
     begin
       snapshot
     ensure
