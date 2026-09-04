@@ -191,9 +191,24 @@ final class ScreenshotsUITests: XCTestCase {
         // expose the inner TextInput as a .textField AX type. Query by
         // testID via the View wrapper (accessible=true, accessibilityLabel
         // set from testID).
+        // Dump the full accessibility tree so we can see what elements are
+        // actually on screen if the email field query fails (H1b diagnosis).
         let emailField = byID("login-email")
-        XCTAssertTrue(emailField.waitForExistence(timeout: 15),
-                      "email field not found on the sign-in screen")
+        let emailFound = emailField.waitForExistence(timeout: 15)
+        if !emailFound {
+            NSLog("DIAGNOSTIC: email field not found by testID 'login-email'")
+            NSLog("DIAGNOSTIC: app.debugDescription follows:")
+            NSLog(app.debugDescription)
+
+            // Try alternative selectors to narrow down the hierarchy.
+            let byLabel = app.otherElements["login-email"].firstMatch
+            let byTextField = app.textFields.matching(identifier: "login-email").firstMatch
+            let byAnyTextField = app.textFields.firstMatch
+            NSLog("DIAGNOSTIC: byLabel exists=\(byLabel.exists), byTextField exists=\(byTextField.exists), byAnyTextField exists=\(byAnyTextField.exists)")
+
+            failWithDiagnostics("email field not found on the sign-in screen")
+            return
+        }
         emailField.tap()
         emailField.typeText(email)
 
