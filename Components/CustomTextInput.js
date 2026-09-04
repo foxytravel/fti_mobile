@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Image, Pressable, Platform} from 'react-native';
+import {Image, Platform} from 'react-native';
 import {FloatingLabelInput} from 'react-native-floating-label-input';
 import {
   widthPercentageToDP as wp,
@@ -10,7 +10,8 @@ import Fonts from '../Constants/Fonts';
 
 const CustomTextInput = props => {
   return (
-    <FloatingLabelInput
+    <>
+      <FloatingLabelInput
         staticLabel={true}
         {...props}
         customLabelStyles={{
@@ -72,6 +73,7 @@ const CustomTextInput = props => {
           />
         ) : null
       ) : null}
+    </>
   );
 };
 
