@@ -11,8 +11,6 @@ import Fonts from '../Constants/Fonts';
 const CustomTextInput = props => {
   return (
     <View
-      accessible={true}
-      accessibilityLabel={props.testID}
       style={{
         flexDirection: 'row',
         justifyContent: 'space-between',
