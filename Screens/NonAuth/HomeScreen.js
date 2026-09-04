@@ -15,7 +15,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import Toast from 'react-native-simple-toast';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import PushNotification from 'react-native-push-notification';
 import messaging from '@react-native-firebase/messaging';
 import {
@@ -108,7 +107,6 @@ const HomeScreen = props => {
         requestPermissions: true,
       });
     } else {
-      PushNotificationIOS.requestPermissions();
       messaging()
         .getToken()
         .then(res => {
