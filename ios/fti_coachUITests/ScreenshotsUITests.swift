@@ -67,17 +67,20 @@ final class ScreenshotsUITests: XCTestCase {
 
     /// Attaches diagnostic info and fails the test with a clear message.
     private func failWithDiagnostics(_ message: String, file: StaticString = #file, line: UInt = #line) {
-        let attachment = XCTAttachment(uniformTypeIdentifier: "public.plain-text")
-        attachment.name = "app-debugDescription"
-        attachment.lifetime = .keepAlways
-        attachment.string = app.debugDescription
-        add(attachment)
+        if let data = app.debugDescription.data(using: .utf8) {
+            let attachment = XCTAttachment(data: data, uniformTypeIdentifier: "public.plain-text")
+            attachment.name = "app-debugDescription"
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        }
 
-        let stateAttachment = XCTAttachment(uniformTypeIdentifier: "public.plain-text")
-        stateAttachment.name = "app-state"
-        stateAttachment.lifetime = .keepAlways
-        stateAttachment.string = "app.state = \(app.state.rawValue)"
-        add(stateAttachment)
+        let stateText = "app.state = \(app.state.rawValue)"
+        if let stateData = stateText.data(using: .utf8) {
+            let stateAttachment = XCTAttachment(data: stateData, uniformTypeIdentifier: "public.plain-text")
+            stateAttachment.name = "app-state"
+            stateAttachment.lifetime = .keepAlways
+            add(stateAttachment)
+        }
 
         let screenshot = XCUIScreen.main.screenshot()
         let screenshotAttachment = XCTAttachment(screenshot: screenshot)
