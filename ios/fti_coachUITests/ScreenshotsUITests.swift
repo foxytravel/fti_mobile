@@ -189,14 +189,15 @@ final class ScreenshotsUITests: XCTestCase {
 
         // The email field is wrapped in FloatingLabelInput which does not
         // expose the inner TextInput as a .textField AX type. Query by
-        // accessibilityLabel instead (set on CustomTextInput).
-        let emailField = app.otherElements["login-email"].firstMatch
+        // testID via the View wrapper (accessible=true, accessibilityLabel
+        // set from testID).
+        let emailField = byID("login-email")
         XCTAssertTrue(emailField.waitForExistence(timeout: 15),
                       "email field not found on the sign-in screen")
         emailField.tap()
         emailField.typeText(email)
 
-        let passwordField = app.otherElements["login-password"].firstMatch
+        let passwordField = byID("login-password")
         XCTAssertTrue(passwordField.waitForExistence(timeout: 10))
         passwordField.tap()
         passwordField.typeText(password)
