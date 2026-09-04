@@ -220,23 +220,32 @@ final class ScreenshotsUITests: XCTestCase {
         // expose the inner TextInput as a .textField AX type. The static
         // label (an Other element with the label text) has onPress={setFocus}
         // so tapping it focuses the inner TextInput. We tap the label via
-        // coordinate (more reliable), wait for keyboard, then type.
+        // coordinate (more reliable), wait for keyboard, then try to find
+        // the focused text field. If found, type into it; otherwise use app.typeText.
         let emailLabel = app.otherElements["Email"].firstMatch
         XCTAssertTrue(waitForHittable(emailLabel, timeout: 15), "Email label not found")
-        // Use coordinate tap to ensure the touch lands in the label's bounds
         emailLabel.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-        // Wait for keyboard to appear, confirming the TextInput gained focus.
         XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10), "Keyboard did not appear after tapping Email label")
-        // Small delay for focus to settle
         usleep(500_000)
-        app.typeText(email)
+        // Check if a text field is now accessible (might appear when focused)
+        let emailField = app.textFields.firstMatch
+        if emailField.waitForExistence(timeout: 3) {
+            emailField.typeText(email)
+        } else {
+            app.typeText(email)
+        }
 
         let passwordLabel = app.otherElements["Password"].firstMatch
         XCTAssertTrue(waitForHittable(passwordLabel, timeout: 10), "Password label not found")
         passwordLabel.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10), "Keyboard did not appear after tapping Password label")
         usleep(500_000)
-        app.typeText(password)
+        let passwordField = app.secureTextFields.firstMatch
+        if passwordField.waitForExistence(timeout: 3) {
+            passwordField.typeText(password)
+        } else {
+            app.typeText(password)
+        }
 
         // Dismiss the keyboard by tapping the screen title, then log in.
         app.staticTexts["LOG IN"].firstMatch.tap()
