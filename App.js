@@ -16,14 +16,16 @@ import PushNotification from 'react-native-push-notification';
 const App = props => {
   const [loading, setLoading] = useState(true);
   const [userLoading, setUserLoading] = useState(false);
+  const isScreenshotRun = !!props.isScreenshotRun;
 
   useEffect(() => {
-    if(Platform.OS=='ios'){
+    if(Platform.OS=='ios' && !isScreenshotRun){
       PushNotificationIOS.requestPermissions();
-
     }
 
-    getLocationdata();
+    if (!isScreenshotRun) {
+      getLocationdata();
+    }
     hideSplash();
   }, []);
 
