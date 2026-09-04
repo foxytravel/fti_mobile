@@ -95,32 +95,6 @@ final class ScreenshotsUITests: XCTestCase {
         XCTFail(message, file: file, line: line)
     }
 
-    /// Dumps all elements matching any of the given patterns in identifier, label, or placeholder.
-    private func dumpAllElementsMatching(_ element: XCUIElement, patterns: [String]) {
-        for pattern in patterns {
-            let predicate = NSPredicate(format: "identifier CONTAINS[c] %@ OR label CONTAINS[c] %@ OR placeholderValue CONTAINS[c] %@", pattern, pattern, pattern)
-            let matches = element.descendants(matching: .any).matching(predicate)
-            if matches.count > 0 {
-                NSLog("DIAGNOSTIC: Found \(matches.count) element(s) matching '\(pattern)':")
-                for i in 0..<min(matches.count, 20) {
-                    let match = matches.element(boundBy: i)
-                    let type = "\(match.elementType)"
-                    let id = match.identifier.isEmpty ? "nil" : match.identifier
-                    let lbl = match.label.isEmpty ? "nil" : match.label
-                    let val = match.value as? String ?? "nil"
-                    let ph = match.placeholderValue ?? "nil"
-                    let frame = match.frame
-                    NSLog("DIAGNOSTIC:   [\(type)] id=\(id) label=\(lbl) value=\(val) placeholder=\(ph) frame=\(frame) exists=\(match.exists) hittable=\(match.isHittable)")
-                }
-                if matches.count > 20 {
-                    NSLog("DIAGNOSTIC:   ... and \(matches.count - 20) more")
-                }
-            } else {
-                NSLog("DIAGNOSTIC: No elements matching '\(pattern)'")
-            }
-        }
-    }
-
     /// Asserts the app is in the foreground; if not, it has crashed or an alert
     /// is covering it.
     private func assertAppRunning(file: StaticString = #file, line: UInt = #line) {
@@ -216,36 +190,31 @@ final class ScreenshotsUITests: XCTestCase {
         XCTAssertTrue(navigated || loginTitle.waitForExistence(timeout: 30),
                       "login screen never appeared after tapping welcome-login-button")
 
-        // The email field is wrapped in FloatingLabelInput which does not
-        // expose the inner TextInput as a .textField AX type. The static
-        // label (an Other element with the label text) has onPress={setFocus}
-        // so tapping it focuses the inner TextInput. We tap the label via
-        // coordinate (more reliable), wait for keyboard, then try to find
-        // the focused text field. If found, type into it; otherwise use app.typeText.
-        let emailLabel = app.otherElements["Email"].firstMatch
-        XCTAssertTrue(waitForHittable(emailLabel, timeout: 15), "Email label not found")
-        emailLabel.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10), "Keyboard did not appear after tapping Email label")
-        usleep(500_000)
-        // Check if a text field is now accessible (might appear when focused)
-        let emailField = app.textFields.firstMatch
-        if emailField.waitForExistence(timeout: 3) {
-            emailField.typeText(email)
-        } else {
-            app.typeText(email)
-        }
+        // FloatingLabelInput's TouchableWithoutFeedback must not collapse its
+        // accessible descendants. The package patch leaves the inner native
+        // TextInput exposed with the testID supplied by CustomTextInput.
+        let emailField = byID("login-email")
+        let emailFound = emailField.waitForExistence(timeout: 15)
+        if !emailFound {
+            NSLog("DIAGNOSTIC: email field not found by testID 'login-email'")
+            NSLog("DIAGNOSTIC: app.debugDescription follows:")
+            NSLog(app.debugDescription)
 
-        let passwordLabel = app.otherElements["Password"].firstMatch
-        XCTAssertTrue(waitForHittable(passwordLabel, timeout: 10), "Password label not found")
-        passwordLabel.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10), "Keyboard did not appear after tapping Password label")
-        usleep(500_000)
-        let passwordField = app.secureTextFields.firstMatch
-        if passwordField.waitForExistence(timeout: 3) {
-            passwordField.typeText(password)
-        } else {
-            app.typeText(password)
+            let byLabel = app.otherElements["login-email"].firstMatch
+            let byTextField = app.textFields.matching(identifier: "login-email").firstMatch
+            let byAnyTextField = app.textFields.firstMatch
+            NSLog("DIAGNOSTIC: byLabel exists=\(byLabel.exists), byTextField exists=\(byTextField.exists), byAnyTextField exists=\(byAnyTextField.exists)")
+
+            failWithDiagnostics("email field not found on the sign-in screen")
+            return
         }
+        emailField.tap()
+        emailField.typeText(email)
+
+        let passwordField = byID("login-password")
+        XCTAssertTrue(passwordField.waitForExistence(timeout: 10))
+        passwordField.tap()
+        passwordField.typeText(password)
 
         // Dismiss the keyboard by tapping the screen title, then log in.
         app.staticTexts["LOG IN"].firstMatch.tap()
