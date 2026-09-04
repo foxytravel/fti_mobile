@@ -184,16 +184,16 @@ final class ScreenshotsUITests: XCTestCase {
         XCTAssertTrue(navigated || loginTitle.waitForExistence(timeout: 30),
                       "login screen never appeared after tapping welcome-login-button")
 
-        // The email field is the only plain textField on this screen (the
-        // password field is a secureTextField), so address it by type — the
-        // FloatingLabelInput's testID does not reliably reach the AX tree.
-        let emailField = app.textFields.firstMatch
+        // The email field is wrapped in FloatingLabelInput which does not
+        // expose the inner TextInput as a .textField AX type. Query by
+        // accessibilityLabel instead (set on CustomTextInput).
+        let emailField = app.otherElements["login-email"].firstMatch
         XCTAssertTrue(emailField.waitForExistence(timeout: 15),
                       "email field not found on the sign-in screen")
         emailField.tap()
         emailField.typeText(email)
 
-        let passwordField = app.secureTextFields.firstMatch
+        let passwordField = app.otherElements["login-password"].firstMatch
         XCTAssertTrue(passwordField.waitForExistence(timeout: 10))
         passwordField.tap()
         passwordField.typeText(password)

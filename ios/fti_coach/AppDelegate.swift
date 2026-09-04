@@ -30,9 +30,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
     window = UIWindow(frame: UIScreen.main.bounds)
 
+    let isScreenshotRun = UserDefaults.standard.bool(forKey: "FASTLANE_SNAPSHOT")
+
     factory.startReactNative(
       withModuleName: "fti_coach",
       in: window,
+      initialProperties: isScreenshotRun ? ["isScreenshotRun": true] : nil,
       launchOptions: launchOptions
     )
 
