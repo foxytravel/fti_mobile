@@ -1,0 +1,109 @@
+name: iOS Screenshots Debug
+
+# Cheap, diagnosable harness for iterating on the screenshot capture.
+# Runs only the fastlane screenshots lane with rich artifacts (xcresult,
+# simulator app log, crash reports). Trigger via:
+#   gh workflow run ios-screenshots-debug.yml --ref ci/screenshots-debug
+
+on:
+  workflow_dispatch:
+    inputs:
+      only_first_screens:
+        description: 'Stop after 02-SignIn (isolates H1 from H2/H3)'
+        type: boolean
+        default: false
+
+jobs:
+  screenshots:
+    name: Capture screenshots (debug)
+    runs-on: macos-26
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up iOS build environment
+        uses: ./.github/actions/setup-ios-build
+        with:
+          ccache-key-prefix: ccache-ios-simulator
+          backend-api-key: ${{ secrets.BACKEND_API_KEY }}
+
+      - name: Capture screenshots
+        id: screenshots
+        continue-on-error: true
+        run: bundle exec fastlane ios screenshots
+        env:
+          SCREENSHOT_EMAIL: ${{ secrets.SCREENSHOT_EMAIL }}
+          SCREENSHOT_PASSWORD: ${{ secrets.SCREENSHOT_PASSWORD }}
+          TEST_RUNNER_SCREENSHOT_STOP_AFTER: ${{ inputs.only_first_screens && '02' || '' }}
+
+      - name: Print diagnostics
+        if: always()
+        run: |
+          echo "=== Machine ==="
+          uname -m
+          echo ""
+          echo "=== Simulators ==="
+          xcrun simctl list devices --json
+          echo ""
+          echo "=== Screenshots directory ==="
+          ls -la fastlane/screenshots/en-US/ 2>/dev/null || echo "(empty)"
+          echo ""
+          echo "=== xcresult bundles ==="
+          find ios/build/snapshot-derived -name '*.xcresult' -type d 2>/dev/null || echo "(none in snapshot-derived)"
+          find fastlane/screenshots -name '*.xcresult' -type d 2>/dev/null || echo "(none in screenshots)"
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: screenshots
+          path: fastlane/screenshots
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload screenshot test log
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: screenshot-test-log
+          path: ~/Library/Logs/snapshot/*.log
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload simulator crash reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: simulator-crash-reports
+          path: ~/Library/Logs/DiagnosticReports/*.ips
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload simulator app log
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: simulator-app-log
+          path: ~/Library/Logs/snapshot/simulator-app.log
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload xcresult bundle
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: xcresult
+          path: |
+            ios/build/snapshot-derived/Logs/Test/*.xcresult
+            fastlane/screenshots/**/*.xcresult
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Report ccache statistics
+        if: always()
+        run: ccache --show-stats --verbose || true
+
+      - name: Fail if screenshots step failed
+        if: steps.screenshots.outcome == 'failure'
+        run: exit 1

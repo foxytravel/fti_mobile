@@ -18,6 +18,7 @@
 # loaded into ssh-agent by the workflows before fastlane runs.
 
 require "fileutils"
+require "json"
 
 default_platform(:ios)
 
@@ -214,6 +215,32 @@ platform :ios do
 
     ensure_screenshot_device
 
+    # Pre-boot the simulator and stream the app console to a log file.
+    # Pre-booting removes the first-boot cost from app.launch() (H5), and
+    # the log captures NSLog/LOG lines from the JS bundle and native modules
+    # that are otherwise invisible in CI.
+    device_name = ENV["SNAPSHOT_DEVICE"] || "iPhone 17 Pro Max"
+    devices_json = `xcrun simctl list devices available -j`
+    all_devices = JSON.parse(devices_json).dig("devices").flat_map { |_r, ds| ds }
+    booted = all_devices.find { |d| d["name"] == device_name && d["state"] == "Booted" }
+    udid = booted&.dig("udid") || all_devices.find { |d| d["name"] == device_name }&.dig("udid")
+
+    if udid
+      sh("xcrun", "simctl", "boot", udid) rescue nil  # already booted is fine
+      sh("xcrun", "simctl", "bootstatus", udid, "-b")
+    end
+
+    log_path = File.expand_path("~/Library/Logs/snapshot/simulator-app.log")
+    FileUtils.mkdir_p(File.dirname(log_path))
+    log_pid = nil
+    if udid
+      log_pid = Process.spawn(
+        "xcrun", "simctl", "spawn", udid, "log", "stream", "--style", "compact",
+        "--predicate", 'process == "fti_coach" OR process == "SpringBoard" OR eventMessage CONTAINS "fticoach"',
+        out: log_path, err: log_path,
+      )
+    end
+
     # The test runs inside the simulator, in a different process tree to
     # fastlane, and xcodebuild does not forward arbitrary host environment
     # variables into it. Since Xcode 13 it forwards exactly those prefixed with
@@ -233,7 +260,11 @@ platform :ios do
     ENV["TEST_RUNNER_SIMULATOR_HOST_HOME"] = Dir.home
     ENV["TEST_RUNNER_SIMULATOR_DEVICE_NAME"] = ENV["SNAPSHOT_DEVICE"] || "iPhone 17 Pro Max"
 
-    snapshot
+    begin
+      snapshot
+    ensure
+      Process.kill("TERM", log_pid) rescue nil if log_pid
+    end
 
     screenshots = Dir.glob(File.join(SCREENSHOTS_PATH, "**", "*.png"))
     if screenshots.count < MIN_SCREENSHOT_COUNT

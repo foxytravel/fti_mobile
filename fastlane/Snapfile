@@ -32,9 +32,13 @@ scheme("fti_coach")
 # Simulator builds are never signed, so signing is pure overhead here (and
 # would fail outright if the project is left on manual signing). dSYMs and the
 # index store are equally useless for a screenshot run and cost minutes.
+derived_data_path("ios/build/snapshot-derived")
+result_bundle(true)
+
 xcargs([
   "CODE_SIGNING_ALLOWED=NO",
   "CODE_SIGNING_REQUIRED=NO",
   "DEBUG_INFORMATION_FORMAT=dwarf",
   "COMPILER_INDEX_STORE_ENABLE=NO",
+  "ONLY_ACTIVE_ARCH=YES",
 ].join(" "))

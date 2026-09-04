@@ -37,6 +37,13 @@ final class ScreenshotsUITests: XCTestCase {
         return environment[name] ?? environment["TEST_RUNNER_\(name)"] ?? ""
     }
 
+    /// Returns true when the test should stop after the given screen prefix
+    /// (e.g. "02" stops after 02-SignIn). Empty/missing means run all.
+    private func shouldStop(after prefix: String) -> Bool {
+        let stopAfter = Self.injectedValue("SCREENSHOT_STOP_AFTER")
+        return !stopAfter.isEmpty && stopAfter == prefix
+    }
+
     /// Element matched by its accessibility identifier (testID).
     private func byID(_ identifier: String) -> XCUIElement {
         app.descendants(matching: .any).matching(identifier: identifier).firstMatch
@@ -56,6 +63,40 @@ final class ScreenshotsUITests: XCTestCase {
             usleep(200_000)
         }
         return element.exists && element.isHittable
+    }
+
+    /// Attaches diagnostic info and fails the test with a clear message.
+    private func failWithDiagnostics(_ message: String, file: StaticString = #file, line: UInt = #line) {
+        let attachment = XCTAttachment(uniformTypeIdentifier: "public.plain-text")
+        attachment.name = "app-debugDescription"
+        attachment.lifetime = .keepAlways
+        attachment.string = app.debugDescription
+        add(attachment)
+
+        let stateAttachment = XCTAttachment(uniformTypeIdentifier: "public.plain-text")
+        stateAttachment.name = "app-state"
+        stateAttachment.lifetime = .keepAlways
+        stateAttachment.string = "app.state = \(app.state.rawValue)"
+        add(stateAttachment)
+
+        let screenshot = XCUIScreen.main.screenshot()
+        let screenshotAttachment = XCTAttachment(screenshot: screenshot)
+        screenshotAttachment.name = "failure-screenshot"
+        screenshotAttachment.lifetime = .keepAlways
+        add(screenshotAttachment)
+
+        NSLog("[ScreenshotsUITests] FAIL: \(message) | app.state=\(app.state.rawValue)")
+        XCTFail(message, file: file, line: line)
+    }
+
+    /// Asserts the app is in the foreground; if not, it has crashed or an alert
+    /// is covering it.
+    private func assertAppRunning(file: StaticString = #file, line: UInt = #line) {
+        guard app.state != .runningForeground else { return }
+        failWithDiagnostics(
+            "app is not in foreground (state=\(app.state.rawValue)); possible crash or overlay",
+            file: file, line: line,
+        )
     }
 
     /// Dismisses the iOS permission alerts (notifications, location, ...) that
@@ -113,12 +154,14 @@ final class ScreenshotsUITests: XCTestCase {
         // screenshot is requested.
         let welcomeButton = byID("welcome-login-button")
         XCTAssertTrue(waitForHittable(welcomeButton, timeout: 60))
+        assertAppRunning()
         app.wait(for: .runningForeground, timeout: 10)
         // Hermes keeps binding the huge Release bundle well after the first
         // frame appears; without this the synthesized tap is delivered before
         // the RNTouchable handler is live and is silently dropped.
         sleep(10)
         snapshot("01-Welcome")
+        if shouldStop(after: "01") { return }
 
         // 2. Sign in screen. The app can take a long time on a cold start before
         // the touch pipeline accepts taps; a tap landing during that window is
@@ -160,10 +203,12 @@ final class ScreenshotsUITests: XCTestCase {
         XCTAssertTrue(byID("login-button").waitForExistence(timeout: 15))
         snapshot("02-SignIn")
         byID("login-button").tap()
+        if shouldStop(after: "02") { return }
 
         // 3. Home / dashboard. The header only appears once the profile and job
         //    data have loaded, so this doubles as a "logged in" signal.
         XCTAssertTrue(app.staticTexts["Charter"].firstMatch.waitForExistence(timeout: 60))
+        assertAppRunning()
         snapshot("03-Home")
 
         // 4. Today's Charter list
