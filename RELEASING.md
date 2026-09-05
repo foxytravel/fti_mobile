@@ -6,6 +6,7 @@ CI/CD is handled by GitHub Actions + fastlane:
 |---|---|---|
 | `iOS TestFlight` | push to `main`, or manual | Auto-bumps the build number (latest TestFlight build + 1), builds with Xcode 26, uploads to TestFlight |
 | `iOS App Store Release` | manual (`workflow_dispatch`) | Bumps the marketing version (patch/minor/major or explicit), **captures the App Store screenshots** (signs in with a demo driver account and drives the app via XCUITest), builds, uploads, **submits for App Store review** (or dry-runs with `submit_for_review=false`), commits the version bump back and tags `vX.Y.Z` |
+| `iOS Screenshots Debug` | manual (`workflow_dispatch`) | Runs only screenshot capture and retains screenshots, XCTest logs, simulator logs, and crash reports for fast diagnosis |
 
 The release workflow runs as three jobs: `build` (device archive) and
 `screenshots` (simulator run) execute **in parallel** because they are
@@ -96,11 +97,11 @@ In the repo: *Settings → Secrets and variables → Actions → New repository 
 > If you rotate the backend key, update the `BACKEND_API_KEY` secret and any
 > local `Config.js` copies.
 
-> The release workflow now generates the App Store screenshots automatically.
-> It signs in with the `SCREENSHOT_EMAIL` / `SCREENSHOT_PASSWORD` demo driver
-> account against the live backend, so the demo driver must have **standing
-> data** (at least one assigned charter) or the "Today's Charter" / charter
-> detail screenshots will come out empty. See *Screenshots* below.
+> The release workflow generates the App Store screenshots automatically. It
+> signs in with the `SCREENSHOT_EMAIL` / `SCREENSHOT_PASSWORD` demo driver
+> account against the live backend. Assign standing charter data when a charter
+> detail screenshot is required; without it, the lane still captures the nine
+> required screens but the charter lists show their empty state.
 
 ### 4. Screenshots (one-time project setup, already in the repo)
 
@@ -134,6 +135,13 @@ not called `iPhone 17 Pro Max`, set `SNAPSHOT_DEVICE` to the right name. The
 lane creates the simulator automatically if it is missing (fresh Xcode
 installs and GitHub runners do not reliably ship every iPhone), so the name in
 `SNAPSHOT_DEVICE` must match a device type Xcode knows about.
+
+For CI-only diagnosis, run `iOS Screenshots Debug` from `main`. Its
+`screenshots`, `screenshot-test-log`, `simulator-app-log`, and
+`simulator-crash-reports` artifacts are retained even when capture fails.
+Snapshot's `FASTLANE_SNAPSHOT` launch flag is passed through
+`AppDelegate.swift` as `isScreenshotRun`, allowing `App.js` to suppress system
+permission prompts while screenshots are captured.
 
 > **Credentials and the test runner.** The UI test runs inside the simulator,
 > in a different process tree to fastlane, and `xcodebuild` does not forward
@@ -263,8 +271,12 @@ switch for it:
 - **Screenshot capture**: the release lane runs fastlane `snapshot` against a
   simulator before submitting, so expect a longer CI run (+10–15 min). It uses
   the real backend and the demo driver account (`SCREENSHOT_EMAIL` /
-  `SCREENSHOT_PASSWORD`) — if the demo driver has no assigned charter, the
-  "Today's Charter" / charter detail shots will be empty.
+  `SCREENSHOT_PASSWORD`). If the demo driver has no assigned charter, the
+  charter screens show their empty state and the optional detail shot is
+  skipped; nine required screenshots are still produced.
+- **Local Xcode Node path**: `ios/.xcode.env.local` is gitignored and may pin an
+  obsolete Node executable. Delete or update it if a local Mac build invokes
+  the wrong Node version.
 - Concurrent releases are prevented via the shared `ios-release` concurrency
   group, since build numbers are derived from the latest TestFlight build.
 - Android is buildable (`cd android && ./gradlew assembleRelease`) but has no

@@ -1,9 +1,9 @@
 name: iOS Screenshots Debug
 
 # Cheap, diagnosable harness for iterating on the screenshot capture.
-# Runs only the fastlane screenshots lane with rich artifacts (xcresult,
-# simulator app log, crash reports). Trigger via:
-#   gh workflow run ios-screenshots-debug.yml --ref ci/screenshots-debug
+# Runs only the fastlane screenshots lane with simulator logs and crash reports.
+# Trigger from main so the workflow and app code match the release path:
+#   gh workflow run ios-screenshots-debug.yml --ref main
 
 on:
   workflow_dispatch:
@@ -48,10 +48,6 @@ jobs:
           echo ""
           echo "=== Screenshots directory ==="
           ls -la fastlane/screenshots/en-US/ 2>/dev/null || echo "(empty)"
-          echo ""
-          echo "=== xcresult bundles ==="
-          find ios/build/snapshot-derived -name '*.xcresult' -type d 2>/dev/null || echo "(none in snapshot-derived)"
-          find fastlane/screenshots -name '*.xcresult' -type d 2>/dev/null || echo "(none in screenshots)"
 
       - name: Upload screenshots
         if: always()
