@@ -11,7 +11,7 @@ import {GetAuth, GetUserId} from '../Redux/UserDetails';
 
 const Stack = createStackNavigator();
 
-const MainStack = props => {
+const MainStack = () => {
 //   const dispatch = useDispatch();
   const auth = useSelector(state => state.userReducer.auth);
 
@@ -62,13 +62,7 @@ const MainStack = props => {
       {auth ? (
         <Stack.Screen name="HomeStack" component={HomeStack} />
       ) : (
-        <Stack.Screen
-          name="AuthStack"
-          component={AuthStack}
-          initialParams={{
-            screenshotStartScreen: props.screenshotStartScreen,
-          }}
-        />
+        <Stack.Screen name="AuthStack" component={AuthStack} />
       )}
     </Stack.Navigator>
   );

@@ -16,13 +16,6 @@ final class ScreenshotsUITests: XCTestCase {
         // arguments (locale, and the flag that puts the app in snapshot mode),
         // which have no effect on an already-running process.
         setupSnapshot(app)
-        // Debug-workflow hook: start the app on a specific screen (see
-        // screenshotStartScreen in App.js / AuthStack.js). Used to capture
-        // screens unreachable in CI, e.g. the OTP-gated NewPasswordScreen.
-        let startScreen = Self.injectedValue("SCREENSHOT_START_SCREEN")
-        if !startScreen.isEmpty {
-            app.launchArguments += ["-SCREENSHOT_START_SCREEN", startScreen]
-        }
         app.launch()
         dismissSystemAlertsIfPresent()
     }
@@ -112,47 +105,6 @@ final class ScreenshotsUITests: XCTestCase {
         )
     }
 
-    /// Types into a field without submitting, then dismisses the keyboard by
-    /// tapping the screen title so the full screen is captured. Secure bullets
-    /// do not paint in the simulator build (02-SignIn's password renders empty
-    /// although login succeeds), and the library eye toggle does not respond
-    /// to synthesized taps, so the field value is logged for verification
-    /// rather than relying on rendered content.
-    private func typeWithoutSubmitting(
-        fieldIdentifier identifier: String,
-        _ text: String,
-        dismissVia title: String,
-        tag: String
-    ) {
-        let field = byID(identifier)
-        XCTAssertTrue(waitForHittable(field, timeout: 30))
-        field.tap()
-        field.typeText(text)
-        NSLog("DIAGNOSTIC: \(tag) value after typeText = \(String(describing: field.value as? String))")
-        app.staticTexts[title].firstMatch.tap()
-        sleep(1)
-    }
-
-    /// Captures the OTP-gated NewPasswordScreen in the three states needed for
-    /// visual inspection of the password-validation fix: on load, after a new
-    /// password is typed, and after the confirmation is typed. The form is
-    /// deliberately never submitted.
-    private func captureNewPasswordStates() {
-        let title = "Enter New Password."
-        let newField = byID("new-password")
-        XCTAssertTrue(waitForHittable(newField, timeout: 60),
-                      "new-password field not found after start-screen launch")
-        assertAppRunning()
-        snapshot("20-NewPassword-Load")
-
-        typeWithoutSubmitting(fieldIdentifier: "new-password", "Fticoach1", dismissVia: title, tag: "21-NewPassword")
-        snapshot("21-NewPassword-Typed")
-
-        typeWithoutSubmitting(fieldIdentifier: "new-password-confirm", "Fticoach1", dismissVia: title, tag: "22-NewPasswordConfirm")
-        snapshot("22-NewPassword-ConfirmTyped")
-        assertAppRunning()
-    }
-
     /// Dismisses the iOS permission alerts (notifications, location, ...) that
     /// the Springboard shows shortly after launch.
     ///
@@ -197,17 +149,6 @@ final class ScreenshotsUITests: XCTestCase {
             see the screenshots lane in fastlane/Fastfile.
             """
         )
-
-        // Debug-workflow hook: when the app was launched straight onto a
-        // specific screen (see setUpWithError), capture just that screen's
-        // states instead of the full listing flow.
-        let startScreen = Self.injectedValue("SCREENSHOT_START_SCREEN")
-        if startScreen == "NewPasswordScreen" {
-            captureNewPasswordStates()
-            return
-        }
-
-        let captureDebugStates = !Self.injectedValue("SCREENSHOT_DEBUG_STATES").isEmpty
 
         // 1. Welcome screen. The app is a Release/Hermes build, so on a cold
         // simulator the JS bundle can take a while to evaluate; wait for the
@@ -319,18 +260,6 @@ final class ScreenshotsUITests: XCTestCase {
         // 9. Change Password
         goToDrawerScreen(itemID: "drawer-item-Change Password", waitForTitle: "Change Password")
         snapshot("09-ChangePassword")
-        if captureDebugStates {
-            // Extra states for visual inspection of the password-validation
-            // fix (debug workflow only; the release lane leaves
-            // SCREENSHOT_DEBUG_STATES unset and captures exactly 01-10).
-            // The form is deliberately never submitted.
-            typeWithoutSubmitting(fieldIdentifier: "change-password-new", "Fticoach1",
-                                  dismissVia: "Change Password", tag: "09b-ChangePasswordNew")
-            snapshot("09b-ChangePassword-NewTyped")
-            typeWithoutSubmitting(fieldIdentifier: "change-password-confirm", "Fticoach1",
-                                  dismissVia: "Change Password", tag: "09c-ChangePasswordConfirm")
-            snapshot("09c-ChangePassword-ConfirmTyped")
-        }
 
         // 10. Profile
         goToDrawerScreen(itemID: "drawer-profile", waitForTitle: "Profile")

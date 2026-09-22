@@ -36,15 +36,15 @@ const renderScreen = () => {
   return {tree: tree, navigation};
 };
 
-const type = (tree, testID, text) => {
+const type = (tree, label, text) => {
   act(() => {
-    tree.root.findByProps({testID: testID}).props.action(text);
+    tree.root.findByProps({label: label}).props.action(text);
   });
 };
 
 const pressSend = tree => {
   act(() => {
-    tree.root.findByProps({testID: 'new-password-send'}).props.action();
+    tree.root.findByProps({title: 'SEND'}).props.action();
   });
 };
 
@@ -56,8 +56,8 @@ it('submits when both fields contain the same valid password (bug report scenari
   axios.mockResolvedValue({data: {Status: true}});
   const {tree, navigation} = renderScreen();
 
-  type(tree, 'new-password', 'Fticoach');
-  type(tree, 'new-password-confirm', 'Fticoach');
+  type(tree, 'New Password', 'Fticoach');
+  type(tree, 'Confirm Password', 'Fticoach');
   pressSend(tree);
   await flush();
 
@@ -80,8 +80,8 @@ it('toasts and does not submit when the fields are empty', async () => {
 it('toasts and does not submit when the confirmation is too short', async () => {
   const {tree, navigation} = renderScreen();
 
-  type(tree, 'new-password', 'Fticoach');
-  type(tree, 'new-password-confirm', 'Fti');
+  type(tree, 'New Password', 'Fticoach');
+  type(tree, 'Confirm Password', 'Fti');
   pressSend(tree);
   await flush();
 

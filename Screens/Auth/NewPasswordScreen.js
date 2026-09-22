@@ -106,7 +106,6 @@ const NewPasswordScreen = props => {
             alignItems: 'center',
           }}>
           <CustomTextInput
-            testID="new-password"
             label="New Password"
             value={password}
             isPassword
@@ -117,7 +116,6 @@ const NewPasswordScreen = props => {
             image={require('../../Assets/Images/eyeoff.png')}
           />
           <CustomTextInput
-            testID="new-password-confirm"
             label="Confirm Password"
             value={confirmPassword}
             isPassword
@@ -139,7 +137,6 @@ const NewPasswordScreen = props => {
           <CustomButton
             loading={loading}
             title="SEND"
-            testID="new-password-send"
             action={() => {
               verifypass();
             }}

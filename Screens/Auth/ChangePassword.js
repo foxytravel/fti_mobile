@@ -134,7 +134,6 @@ const ChangePassword = props => {
               justifyContent: 'space-evenly',
             }}>
             <CustomTextInput
-              testID="change-password-old"
               label="Old Password"
               value={oldPassword}
               isPassword
@@ -146,7 +145,6 @@ const ChangePassword = props => {
               action={text => setOldPassword(text)}
             />
             <CustomTextInput
-              testID="change-password-new"
               label="New Password"
               value={password}
               isPassword
@@ -157,7 +155,6 @@ const ChangePassword = props => {
               image={require('../../Assets/Images/eyeoff.png')}
             />
             <CustomTextInput
-              testID="change-password-confirm"
               label="Confirm Password"
               value={confirmPassword}
               isPassword
@@ -179,7 +176,6 @@ const ChangePassword = props => {
             <CustomButton
               loading={loading}
               title="SAVE"
-              testID="change-password-save"
               action={() => {
                 verifypass();
               }}

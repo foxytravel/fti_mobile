@@ -17,9 +17,6 @@ const App = props => {
   const [loading, setLoading] = useState(true);
   const [userLoading, setUserLoading] = useState(false);
   const isScreenshotRun = !!props.isScreenshotRun;
-  // Debug-workflow hook: screen to start on during screenshot runs
-  // (e.g. the OTP-gated NewPasswordScreen). Always null outside snapshots.
-  const screenshotStartScreen = props.screenshotStartScreen || null;
 
   useEffect(() => {
     if(Platform.OS=='ios' && !isScreenshotRun){
@@ -137,7 +134,7 @@ const App = props => {
     <Root>
       <Provider store={store}>
         <NavigationContainer>
-          <MainStack screenshotStartScreen={screenshotStartScreen} />
+          <MainStack />
         </NavigationContainer>
       </Provider>
     </Root>
