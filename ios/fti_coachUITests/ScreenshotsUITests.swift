@@ -115,12 +115,10 @@ final class ScreenshotsUITests: XCTestCase {
     /// Types into a field without submitting, then dismisses the keyboard by
     /// tapping the screen title so the full screen is captured.
     ///
-    /// Diagnostics: XCTest reported successful typeText into the password
-    /// SecureTextFields while the rendered fields stayed empty in the
-    /// captured PNGs. Log the field value right after typing (secure fields
-    /// report masked dots when content is present), retry once when empty,
-    /// and capture a keyboard-up shot before dismissing, so the snapshot log
-    /// shows whether the keystrokes landed at all or were wiped on dismiss.
+    /// Secure bullets do not paint in the simulator build (02-SignIn shows an
+    /// empty password field even though login succeeded), so after typing we
+    /// tap the field's right-side eye toggle to reveal the text visibly —
+    /// the same presentation as the user's bug-report screenshot.
     private func typeWithoutSubmitting(
         _ element: XCUIElement,
         _ text: String,
@@ -131,18 +129,10 @@ final class ScreenshotsUITests: XCTestCase {
         element.tap()
         element.typeText(text)
         sleep(2)
-        var typedValue = element.value as? String
-        NSLog("DIAGNOSTIC: \(tag) value after typeText = \(String(describing: typedValue))")
-        if typedValue == nil || typedValue!.isEmpty {
-            NSLog("DIAGNOSTIC: \(tag) empty after first type; retrying tap + type")
-            element.tap()
-            sleep(1)
-            element.typeText(text)
-            sleep(2)
-            typedValue = element.value as? String
-            NSLog("DIAGNOSTIC: \(tag) value after retry = \(String(describing: typedValue))")
-        }
-        snapshot("\(tag)-KeyboardUp")
+        NSLog("DIAGNOSTIC: \(tag) value after typeText = \(String(describing: element.value as? String))")
+        element.coordinate(withNormalizedOffset: CGVector(dx: 0.97, dy: 0.5)).tap()
+        sleep(1)
+        snapshot("\(tag)-Visible")
         app.staticTexts[title].firstMatch.tap()
         sleep(1)
     }
