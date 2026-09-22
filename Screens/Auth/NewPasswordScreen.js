@@ -19,6 +19,7 @@ import CustomButton from '../../Components/CustomButton';
 import Toast from 'react-native-simple-toast';
 import axios from 'axios';
 import {API} from '../../API/API';
+import {validateNewPassword} from './passwordValidation';
 
 const NewPasswordScreen = props => {
   const id = props.route.params.id;
@@ -59,18 +60,11 @@ const NewPasswordScreen = props => {
   };
 
   const verifypass = () => {
-    if (!password || !confirmPassword) {
-      Toast.show('Please enter a valid password');
+    const error = validateNewPassword(password, confirmPassword);
+    if (error) {
+      Toast.show(error);
     } else {
-      if (password.length >= 6 && confirmPassword >= 6) {
-        if (password == confirmPassword) {
-          newPassword();
-        } else {
-          Toast.show("Password & Confirm Password doesn't match ");
-        }
-      } else {
-        Toast.show('Password Must of atlease 6 Characters');
-      }
+      newPassword();
     }
   };
 

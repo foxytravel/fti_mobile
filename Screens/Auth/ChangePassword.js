@@ -23,6 +23,7 @@ import axios from 'axios';
 import {GetAuth, GetUserId} from '../../Redux/UserDetails';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomDrawerHeader from '../../Components/CustomDrawerHeader';
+import {validateChangePassword} from './passwordValidation';
 
 const ChangePassword = props => {
   const [password, setPassword] = useState('');
@@ -85,28 +86,15 @@ const ChangePassword = props => {
   };
 
   const verifypass = () => {
-    if (!password || !confirmPassword || !oldPassword) {
-      Toast.show('Please enter a valid password');
+    const error = validateChangePassword(
+      oldPassword,
+      password,
+      confirmPassword,
+    );
+    if (error) {
+      Toast.show(error);
     } else {
-      if (
-        password.length >= 6 &&
-        oldPassword.length >= 6 &&
-        confirmPassword.length >= 6
-      ) {
-        if (password == confirmPassword) {
-          if (password == oldPassword) {
-            Toast.show(
-              'Your new password must be different from previous password',
-            );
-          } else {
-            changeUserPassword();
-          }
-        } else {
-          Toast.show("Password & Confirm Password doesn't match ");
-        }
-      } else {
-        Toast.show('Passowrds Must of Atleast 8 Characters');
-      }
+      changeUserPassword();
     }
   };
 
