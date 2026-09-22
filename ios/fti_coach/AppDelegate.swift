@@ -31,11 +31,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     window = UIWindow(frame: UIScreen.main.bounds)
 
     let isScreenshotRun = UserDefaults.standard.bool(forKey: "FASTLANE_SNAPSHOT")
+    var initialProperties: [String: Any]?
+    if isScreenshotRun {
+      initialProperties = ["isScreenshotRun": true]
+      // Debug-workflow hook: start the app on a specific screen (passed as the
+      // -SCREENSHOT_START_SCREEN launch argument). NewPasswordScreen is
+      // OTP-gated and otherwise unreachable in CI.
+      if let startScreen = UserDefaults.standard.string(forKey: "SCREENSHOT_START_SCREEN") {
+        initialProperties?["screenshotStartScreen"] = startScreen
+      }
+    }
 
     factory.startReactNative(
       withModuleName: "fti_coach",
       in: window,
-      initialProperties: isScreenshotRun ? ["isScreenshotRun": true] : nil,
+      initialProperties: initialProperties,
       launchOptions: launchOptions
     )
 

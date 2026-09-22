@@ -12,6 +12,10 @@ on:
         description: 'Stop after 02-SignIn (isolates H1 from H2/H3)'
         type: boolean
         default: false
+      start_screen:
+        description: 'Start app directly on a screen for focused captures (e.g. NewPasswordScreen)'
+        type: string
+        default: ''
 
 jobs:
   screenshots:
@@ -36,6 +40,13 @@ jobs:
           SCREENSHOT_EMAIL: ${{ secrets.SCREENSHOT_EMAIL }}
           SCREENSHOT_PASSWORD: ${{ secrets.SCREENSHOT_PASSWORD }}
           TEST_RUNNER_SCREENSHOT_STOP_AFTER: ${{ inputs.only_first_screens && '02' || '' }}
+          # Extra per-screen state captures (e.g. 09b/09c ChangePassword).
+          # The release workflow never sets this, so it captures exactly 01-10.
+          TEST_RUNNER_SCREENSHOT_DEBUG_STATES: '1'
+          # Optional start-screen hook (e.g. NewPasswordScreen, OTP-gated and
+          # otherwise unreachable in CI). Focused runs capture only a few PNGs.
+          TEST_RUNNER_SCREENSHOT_START_SCREEN: ${{ inputs.start_screen }}
+          MIN_SCREENSHOT_COUNT: ${{ inputs.start_screen != '' && '3' || '9' }}
 
       - name: Print diagnostics
         if: always()

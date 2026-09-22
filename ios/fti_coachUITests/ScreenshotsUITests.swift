@@ -16,6 +16,13 @@ final class ScreenshotsUITests: XCTestCase {
         // arguments (locale, and the flag that puts the app in snapshot mode),
         // which have no effect on an already-running process.
         setupSnapshot(app)
+        // Debug-workflow hook: start the app on a specific screen (see
+        // screenshotStartScreen in App.js / AuthStack.js). Used to capture
+        // screens unreachable in CI, e.g. the OTP-gated NewPasswordScreen.
+        let startScreen = Self.injectedValue("SCREENSHOT_START_SCREEN")
+        if !startScreen.isEmpty {
+            app.launchArguments += ["-SCREENSHOT_START_SCREEN", startScreen]
+        }
         app.launch()
         dismissSystemAlertsIfPresent()
     }
@@ -105,6 +112,39 @@ final class ScreenshotsUITests: XCTestCase {
         )
     }
 
+    /// Types into a field without submitting, then dismisses the keyboard by
+    /// tapping the screen title so the full screen is captured.
+    private func typeWithoutSubmitting(
+        _ element: XCUIElement,
+        _ text: String,
+        dismissVia title: String
+    ) {
+        XCTAssertTrue(waitForHittable(element, timeout: 30))
+        element.tap()
+        element.typeText(text)
+        app.staticTexts[title].firstMatch.tap()
+    }
+
+    /// Captures the OTP-gated NewPasswordScreen in the three states needed for
+    /// visual inspection of the password-validation fix: on load, after a new
+    /// password is typed, and after the confirmation is typed. The form is
+    /// deliberately never submitted.
+    private func captureNewPasswordStates() {
+        let title = "Enter New Password."
+        let newField = byID("new-password")
+        XCTAssertTrue(waitForHittable(newField, timeout: 60),
+                      "new-password field not found after start-screen launch")
+        assertAppRunning()
+        snapshot("20-NewPassword-Load")
+
+        typeWithoutSubmitting(newField, "Fticoach1", dismissVia: title)
+        snapshot("21-NewPassword-Typed")
+
+        typeWithoutSubmitting(byID("new-password-confirm"), "Fticoach1", dismissVia: title)
+        snapshot("22-NewPassword-ConfirmTyped")
+        assertAppRunning()
+    }
+
     /// Dismisses the iOS permission alerts (notifications, location, ...) that
     /// the Springboard shows shortly after launch.
     ///
@@ -149,6 +189,17 @@ final class ScreenshotsUITests: XCTestCase {
             see the screenshots lane in fastlane/Fastfile.
             """
         )
+
+        // Debug-workflow hook: when the app was launched straight onto a
+        // specific screen (see setUpWithError), capture just that screen's
+        // states instead of the full listing flow.
+        let startScreen = Self.injectedValue("SCREENSHOT_START_SCREEN")
+        if startScreen == "NewPasswordScreen" {
+            captureNewPasswordStates()
+            return
+        }
+
+        let captureDebugStates = !Self.injectedValue("SCREENSHOT_DEBUG_STATES").isEmpty
 
         // 1. Welcome screen. The app is a Release/Hermes build, so on a cold
         // simulator the JS bundle can take a while to evaluate; wait for the
@@ -260,6 +311,18 @@ final class ScreenshotsUITests: XCTestCase {
         // 9. Change Password
         goToDrawerScreen(itemID: "drawer-item-Change Password", waitForTitle: "Change Password")
         snapshot("09-ChangePassword")
+        if captureDebugStates {
+            // Extra states for visual inspection of the password-validation
+            // fix (debug workflow only; the release lane leaves
+            // SCREENSHOT_DEBUG_STATES unset and captures exactly 01-10).
+            // The form is deliberately never submitted.
+            typeWithoutSubmitting(byID("change-password-new"), "Fticoach1",
+                                  dismissVia: "Change Password")
+            snapshot("09b-ChangePassword-NewTyped")
+            typeWithoutSubmitting(byID("change-password-confirm"), "Fticoach1",
+                                  dismissVia: "Change Password")
+            snapshot("09c-ChangePassword-ConfirmTyped")
+        }
 
         // 10. Profile
         goToDrawerScreen(itemID: "drawer-profile", waitForTitle: "Profile")

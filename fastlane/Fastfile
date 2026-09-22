@@ -272,9 +272,13 @@ platform :ios do
     end
 
     screenshots = Dir.glob(File.join(SCREENSHOTS_PATH, "**", "*.png"))
-    if screenshots.count < MIN_SCREENSHOT_COUNT
+    # Debug runs that capture only a few focused states (e.g. the start-screen
+    # hook) can lower the floor via MIN_SCREENSHOT_COUNT; normal runs and
+    # `publish` keep the hard default.
+    min_count = (ENV["MIN_SCREENSHOT_COUNT"] || MIN_SCREENSHOT_COUNT).to_i
+    if screenshots.count < min_count
       UI.user_error!(
-        "Expected at least #{MIN_SCREENSHOT_COUNT} screenshots, found #{screenshots.count} in #{SCREENSHOTS_PATH}",
+        "Expected at least #{min_count} screenshots, found #{screenshots.count} in #{SCREENSHOTS_PATH}",
       )
     end
   end
