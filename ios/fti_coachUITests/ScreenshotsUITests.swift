@@ -114,15 +114,37 @@ final class ScreenshotsUITests: XCTestCase {
 
     /// Types into a field without submitting, then dismisses the keyboard by
     /// tapping the screen title so the full screen is captured.
+    ///
+    /// Diagnostics: XCTest reported successful typeText into the password
+    /// SecureTextFields while the rendered fields stayed empty in the
+    /// captured PNGs. Log the field value right after typing (secure fields
+    /// report masked dots when content is present), retry once when empty,
+    /// and capture a keyboard-up shot before dismissing, so the snapshot log
+    /// shows whether the keystrokes landed at all or were wiped on dismiss.
     private func typeWithoutSubmitting(
         _ element: XCUIElement,
         _ text: String,
-        dismissVia title: String
+        dismissVia title: String,
+        tag: String
     ) {
         XCTAssertTrue(waitForHittable(element, timeout: 30))
         element.tap()
         element.typeText(text)
+        sleep(2)
+        var typedValue = element.value as? String
+        NSLog("DIAGNOSTIC: \(tag) value after typeText = \(String(describing: typedValue))")
+        if typedValue == nil || typedValue!.isEmpty {
+            NSLog("DIAGNOSTIC: \(tag) empty after first type; retrying tap + type")
+            element.tap()
+            sleep(1)
+            element.typeText(text)
+            sleep(2)
+            typedValue = element.value as? String
+            NSLog("DIAGNOSTIC: \(tag) value after retry = \(String(describing: typedValue))")
+        }
+        snapshot("\(tag)-KeyboardUp")
         app.staticTexts[title].firstMatch.tap()
+        sleep(1)
     }
 
     /// Captures the OTP-gated NewPasswordScreen in the three states needed for
@@ -137,10 +159,10 @@ final class ScreenshotsUITests: XCTestCase {
         assertAppRunning()
         snapshot("20-NewPassword-Load")
 
-        typeWithoutSubmitting(newField, "Fticoach1", dismissVia: title)
+        typeWithoutSubmitting(newField, "Fticoach1", dismissVia: title, tag: "21-NewPassword")
         snapshot("21-NewPassword-Typed")
 
-        typeWithoutSubmitting(byID("new-password-confirm"), "Fticoach1", dismissVia: title)
+        typeWithoutSubmitting(byID("new-password-confirm"), "Fticoach1", dismissVia: title, tag: "22-NewPasswordConfirm")
         snapshot("22-NewPassword-ConfirmTyped")
         assertAppRunning()
     }
@@ -317,10 +339,10 @@ final class ScreenshotsUITests: XCTestCase {
             // SCREENSHOT_DEBUG_STATES unset and captures exactly 01-10).
             // The form is deliberately never submitted.
             typeWithoutSubmitting(byID("change-password-new"), "Fticoach1",
-                                  dismissVia: "Change Password")
+                                  dismissVia: "Change Password", tag: "09b-ChangePasswordNew")
             snapshot("09b-ChangePassword-NewTyped")
             typeWithoutSubmitting(byID("change-password-confirm"), "Fticoach1",
-                                  dismissVia: "Change Password")
+                                  dismissVia: "Change Password", tag: "09c-ChangePasswordConfirm")
             snapshot("09c-ChangePassword-ConfirmTyped")
         }
 
