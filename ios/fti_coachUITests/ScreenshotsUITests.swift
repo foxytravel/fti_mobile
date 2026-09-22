@@ -130,9 +130,11 @@ final class ScreenshotsUITests: XCTestCase {
         sleep(2)
         NSLog("DIAGNOSTIC: \(tag) value after typeText = \(String(describing: field.value as? String))")
         let eyeToggle = byID("\(identifier)-eye")
-        NSLog("DIAGNOSTIC: \(tag) eye toggle exists = \(eyeToggle.exists)")
+        NSLog("DIAGNOSTIC: \(tag) eye toggle exists = \(eyeToggle.exists), frame = \(eyeToggle.frame)")
         if eyeToggle.exists {
             eyeToggle.tap()
+            sleep(1)
+            NSLog("DIAGNOSTIC: \(tag) AX after eye tap:\n\(app.debugDescription)")
         }
         sleep(1)
         snapshot("\(tag)-Visible")
