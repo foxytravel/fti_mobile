@@ -112,11 +112,12 @@ final class ScreenshotsUITests: XCTestCase {
         )
     }
 
-    /// Types into a field without submitting, reveals the text by tapping the
-    /// field's eye toggle (secure bullets do not paint in the simulator
-    /// build), then dismisses the keyboard by tapping the screen title so the
-    /// full screen is captured. The eye toggle is AX-addressable with the
-    /// `<fieldId>-eye` testID supplied by CustomTextInput.
+    /// Types into a field without submitting, then dismisses the keyboard by
+    /// tapping the screen title so the full screen is captured. Secure bullets
+    /// do not paint in the simulator build (02-SignIn's password renders empty
+    /// although login succeeds), and the library eye toggle does not respond
+    /// to synthesized taps, so the field value is logged for verification
+    /// rather than relying on rendered content.
     private func typeWithoutSubmitting(
         fieldIdentifier identifier: String,
         _ text: String,
@@ -127,17 +128,7 @@ final class ScreenshotsUITests: XCTestCase {
         XCTAssertTrue(waitForHittable(field, timeout: 30))
         field.tap()
         field.typeText(text)
-        sleep(2)
         NSLog("DIAGNOSTIC: \(tag) value after typeText = \(String(describing: field.value as? String))")
-        let eyeToggle = byID("\(identifier)-eye")
-        NSLog("DIAGNOSTIC: \(tag) eye toggle exists = \(eyeToggle.exists), frame = \(eyeToggle.frame)")
-        if eyeToggle.exists {
-            eyeToggle.tap()
-            sleep(1)
-            NSLog("DIAGNOSTIC: \(tag) AX after eye tap:\n\(app.debugDescription)")
-        }
-        sleep(1)
-        snapshot("\(tag)-Visible")
         app.staticTexts[title].firstMatch.tap()
         sleep(1)
     }
