@@ -19,6 +19,7 @@ import CustomButton from '../../Components/CustomButton';
 import Toast from 'react-native-simple-toast';
 import axios from 'axios';
 import {API} from '../../API/API';
+import {validateNewPassword} from './passwordValidation';
 
 const NewPasswordScreen = props => {
   const id = props.route.params.id;
@@ -59,18 +60,11 @@ const NewPasswordScreen = props => {
   };
 
   const verifypass = () => {
-    if (!password || !confirmPassword) {
-      Toast.show('Please enter a valid password');
+    const error = validateNewPassword(password, confirmPassword);
+    if (error) {
+      Toast.show(error);
     } else {
-      if (password.length >= 6 && confirmPassword >= 6) {
-        if (password == confirmPassword) {
-          newPassword();
-        } else {
-          Toast.show("Password & Confirm Password doesn't match ");
-        }
-      } else {
-        Toast.show('Password Must of atlease 6 Characters');
-      }
+      newPassword();
     }
   };
 
@@ -112,6 +106,7 @@ const NewPasswordScreen = props => {
             alignItems: 'center',
           }}>
           <CustomTextInput
+            testID="new-password"
             label="New Password"
             value={password}
             isPassword
@@ -122,6 +117,7 @@ const NewPasswordScreen = props => {
             image={require('../../Assets/Images/eyeoff.png')}
           />
           <CustomTextInput
+            testID="new-password-confirm"
             label="Confirm Password"
             value={confirmPassword}
             isPassword
@@ -143,6 +139,7 @@ const NewPasswordScreen = props => {
           <CustomButton
             loading={loading}
             title="SEND"
+            testID="new-password-send"
             action={() => {
               verifypass();
             }}
