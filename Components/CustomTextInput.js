@@ -47,12 +47,14 @@ const CustomTextInput = props => {
         onChangeText={text => props.action(text)}
         customShowPasswordComponent={
           <Image
+            testID={props.testID ? `${props.testID}-eye` : undefined}
             style={{height: hp('4%'), width: wp('4%'), resizeMode: 'contain'}}
             source={require('../Assets/Images/eyeon.png')}
           />
         }
         customHidePasswordComponent={
           <Image
+            testID={props.testID ? `${props.testID}-eye` : undefined}
             style={{height: hp('4%'), width: wp('4%'), resizeMode: 'contain'}}
             source={require('../Assets/Images/eyeoff.png')}
           />

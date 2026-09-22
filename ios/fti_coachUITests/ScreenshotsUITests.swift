@@ -112,25 +112,28 @@ final class ScreenshotsUITests: XCTestCase {
         )
     }
 
-    /// Types into a field without submitting, then dismisses the keyboard by
-    /// tapping the screen title so the full screen is captured.
-    ///
-    /// Secure bullets do not paint in the simulator build (02-SignIn shows an
-    /// empty password field even though login succeeded), so after typing we
-    /// tap the field's right-side eye toggle to reveal the text visibly —
-    /// the same presentation as the user's bug-report screenshot.
+    /// Types into a field without submitting, reveals the text by tapping the
+    /// field's eye toggle (secure bullets do not paint in the simulator
+    /// build), then dismisses the keyboard by tapping the screen title so the
+    /// full screen is captured. The eye toggle is AX-addressable with the
+    /// `<fieldId>-eye` testID supplied by CustomTextInput.
     private func typeWithoutSubmitting(
-        _ element: XCUIElement,
+        fieldIdentifier identifier: String,
         _ text: String,
         dismissVia title: String,
         tag: String
     ) {
-        XCTAssertTrue(waitForHittable(element, timeout: 30))
-        element.tap()
-        element.typeText(text)
+        let field = byID(identifier)
+        XCTAssertTrue(waitForHittable(field, timeout: 30))
+        field.tap()
+        field.typeText(text)
         sleep(2)
-        NSLog("DIAGNOSTIC: \(tag) value after typeText = \(String(describing: element.value as? String))")
-        element.coordinate(withNormalizedOffset: CGVector(dx: 0.97, dy: 0.5)).tap()
+        NSLog("DIAGNOSTIC: \(tag) value after typeText = \(String(describing: field.value as? String))")
+        let eyeToggle = byID("\(identifier)-eye")
+        NSLog("DIAGNOSTIC: \(tag) eye toggle exists = \(eyeToggle.exists)")
+        if eyeToggle.exists {
+            eyeToggle.tap()
+        }
         sleep(1)
         snapshot("\(tag)-Visible")
         app.staticTexts[title].firstMatch.tap()
@@ -149,10 +152,10 @@ final class ScreenshotsUITests: XCTestCase {
         assertAppRunning()
         snapshot("20-NewPassword-Load")
 
-        typeWithoutSubmitting(newField, "Fticoach1", dismissVia: title, tag: "21-NewPassword")
+        typeWithoutSubmitting(fieldIdentifier: "new-password", "Fticoach1", dismissVia: title, tag: "21-NewPassword")
         snapshot("21-NewPassword-Typed")
 
-        typeWithoutSubmitting(byID("new-password-confirm"), "Fticoach1", dismissVia: title, tag: "22-NewPasswordConfirm")
+        typeWithoutSubmitting(fieldIdentifier: "new-password-confirm", "Fticoach1", dismissVia: title, tag: "22-NewPasswordConfirm")
         snapshot("22-NewPassword-ConfirmTyped")
         assertAppRunning()
     }
@@ -328,10 +331,10 @@ final class ScreenshotsUITests: XCTestCase {
             // fix (debug workflow only; the release lane leaves
             // SCREENSHOT_DEBUG_STATES unset and captures exactly 01-10).
             // The form is deliberately never submitted.
-            typeWithoutSubmitting(byID("change-password-new"), "Fticoach1",
+            typeWithoutSubmitting(fieldIdentifier: "change-password-new", "Fticoach1",
                                   dismissVia: "Change Password", tag: "09b-ChangePasswordNew")
             snapshot("09b-ChangePassword-NewTyped")
-            typeWithoutSubmitting(byID("change-password-confirm"), "Fticoach1",
+            typeWithoutSubmitting(fieldIdentifier: "change-password-confirm", "Fticoach1",
                                   dismissVia: "Change Password", tag: "09c-ChangePasswordConfirm")
             snapshot("09c-ChangePassword-ConfirmTyped")
         }
